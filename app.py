@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
 import pandas as pd
+import matplotlib.pyplot as plt
+import os
 
 app = Flask(__name__)
 
@@ -24,6 +26,23 @@ def upload():
 	else:
 		return "Unsupported file format"
 
+	# Auto chart (first numeric Column)
+	numeric_cols = df.select_dtypes(include='number').columns
+
+	if len(numeric_cols)>0:
+		col = numeric_cols[0]
+
+		plt.figure()
+		df[col].plot(kind='line')
+		plt.title(f"{col} Trend")
+
+		os.makedirs('static', exist_ok=True)
+		chart_path = 'static/chart.png'
+		plt.savefig(chart_path)
+		plt.close()
+	else:
+		chart_path = None
+
 	summary = df.describe().to_html()
 
 	return f"""
@@ -32,6 +51,9 @@ def upload():
 
 	<h2>Summary</h2>
 	{summary}
+
+	<h2>Chart</h2>
+	{"<img src='/static/chart.png'>" if chart_path else "No numeric data"}
 	
 	<br><a href="/">Back</a>
 	"""
