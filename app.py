@@ -26,22 +26,60 @@ def upload():
 	else:
 		return "Unsupported file format"
 
-	# Auto chart (first numeric Column)
+	#  Improved chart generation
+	
+	os.makedirs('static', exist_ok=True)
+	
+	chart_html =""
 	numeric_cols = df.select_dtypes(include='number').columns
+	categorical_cols = df.select_dtypes(include='object').columns
+	
+	# 1. Histogram for numeric Column
+	for col in numeric_cols[:2]:
+		plt.figure()
+		df[col].dropna().hist()
+		plt.title(f"Distribution of {col}")
 
-	if len(numeric_cols)>0:
-		col = numeric_cols[0]
+		path = f"static/{col}_hist.png"
+		plt.savefig(path)
+		plt.close()
+		
+		chart_html +=f"<h3>{col} Distribution</h3><img src='/{path}' width='500'>"
+
+	# 2. Bar chart for categorial + numeric
+	if len(categorical_cols) > 0 and len(numeric_cols) > 0:
+		cat = categorical_cols[0]
+		num = numeric_cols[0]
+
+		grouped = df.groupby(cat)[num].mean().head(10)
 
 		plt.figure()
-		df[col].plot(kind='line')
-		plt.title(f"{col} Trend")
+		grouped.plot(kind='bar')
+		plt.title(f"{num} by {cat}")
 
-		os.makedirs('static', exist_ok=True)
-		chart_path = 'static/chart.png'
-		plt.savefig(chart_path)
+		path = f"static/bar_chart.png"
+		plt.savefig(path)
 		plt.close()
-	else:
-		chart_path = None
+
+		chart_html += f"<h3>Bar Chart</h3><img src='/{path}' width='500'>"
+
+	# 3. Line chart if time-like column exists
+	for col in df.columns:
+		if 'date' in col.lower():
+			df[col] = pd.to_datetime(df[col, errors='coerce')
+			
+			num = numeric_cols[0]
+
+			plt.figure()
+			df.sort_values(col).plot(x=col, y=num)
+			plt.title(f"{num} over time")
+			
+			path = f"static/line_chart.png"
+			plt.savefig(path)
+			plt.close()
+			
+			chart_html += f"<h3>Trend</h3><img src='/{path}' width='500'>"
+			break
 
 	summary = df.describe().to_html()
 
@@ -53,7 +91,7 @@ def upload():
 	{summary}
 
 	<h2>Chart</h2>
-	{"<img src='/static/chart.png'>" if chart_path else "No numeric data"}
+	{chart_html}
 	
 	<br><a href="/">Back</a>
 	"""
