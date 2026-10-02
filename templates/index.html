@@ -1,14 +1,169 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>AI Data Analyzer</title>
-</head>
-<body>
-	<h1>Upload CSV or Excel (.xlsx)</h1>
+{% extends "base.html" %}
+{% block title %}New analysis · AI Data Analyzer{% endblock %}
+{% block content %}
+<div class="intake">
+  <section class="intake-copy">
+    <h1>Analyse a spreadsheet</h1>
+    <p>Upload a CSV or Excel file, or paste a Google Sheets link. Every sheet is checked, cleaned and charted, then explained in plain language.</p>
+    <ol class="steps">
+      <li><b>Read every sheet</b><span>Finds the real header row and what each column holds.</span></li>
+      <li><b>Clean the data</b><span>Fixes safe problems and flags the ones you should check.</span></li>
+      <li><b>Chart it</b><span>The AI picks the charts that answer real questions.</span></li>
+      <li><b>Explain it</b><span>Insights and recommendations from the actual numbers.</span></li>
+      <li><b>Check the market</b><span>Recent industry and competitor news, with sources.</span></li>
+    </ol>
+  </section>
 
-	<form action="/upload" method="post" enctype="multipart/form-data">
-		<input type="file" name="file">
-		<button type="submit">Upload</button>
-	</form>
-</body>
-</html>
+  <form class="form-sheet" method="post" action="{{ url_for('analyze') }}" enctype="multipart/form-data" id="upload-form">
+    {% if not providers %}
+    <p class="alert warn">No AI key is set, so you'll get cleaning and charts without written insights.
+      Add <code>OPENAI_API_KEY</code>, <code>ANTHROPIC_API_KEY</code> or <code>GEMINI_API_KEY</code> to enable them.</p>
+    {% endif %}
+
+    <div class="source-switch" role="tablist" aria-label="Where is your data?">
+      <button type="button" role="tab" aria-selected="true" data-source="file">Upload a file</button>
+      <button type="button" role="tab" aria-selected="false" data-source="link">Google Sheets or Drive link</button>
+    </div>
+
+    <div data-pane="file">
+    <label class="drop" id="drop">
+      <input type="file" name="file" id="file" accept=".csv,.xlsx,.xlsm,.xls" aria-describedby="file-hint">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+      <strong id="file-label">Choose a file or drop it here</strong>
+      <span id="file-hint">CSV or Excel, up to {{ max_mb }} MB</span>
+    </label>
+    </div>
+
+    <div data-pane="link" hidden class="link-pane">
+      <label class="field">Link to a Google Sheet, or to an .xlsx / .csv file in Google Drive
+        <input type="text" name="link" id="link" inputmode="url" autocomplete="off" spellcheck="false"
+               placeholder="https://docs.google.com/spreadsheets/d/…">
+      </label>
+      <div class="share-help">
+        {% if robot_email %}
+        <p><b>Private files:</b> in Google, click Share and add this address as Viewer. Only this app can then read it.</p>
+        <div class="copy-row"><code id="robot">{{ robot_email }}</code>
+          <button type="button" class="btn secondary small-btn" id="copy-robot">Copy</button></div>
+        <p class="quiet">Or set General access to "Anyone with the link". Files up to {{ link_mb }} MB.</p>
+        {% else %}
+        <p>In Google, click Share and set General access to <b>"Anyone with the link"</b> (Viewer). Files up to {{ link_mb }} MB.</p>
+        <p class="quiet">To keep files private instead, set up a Google service account (see the README) and this box will show the address to share with.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>Analysis</legend>
+      <div class="fields">
+        <label class="field">AI model
+          <select name="provider">
+            {% for p in providers %}<option value="{{ p.id }}">{{ p.label }} ({{ p.model }})</option>{% endfor %}
+            <option value="">No AI, basic analysis only</option>
+          </select>
+        </label>
+        <label class="field">Report language
+          <select name="language">
+            <option value="English">English</option>
+            <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">What do you want to find out? <span class="hint">Optional. Helps the AI focus.</span>
+        <input type="text" name="goal" placeholder="Which channel should we invest more in next quarter?">
+      </label>
+    </fieldset>
+
+    <hr class="divider">
+
+    <fieldset>
+      <legend>Market context <span class="small quiet" style="font-weight:400">Optional. Leave blank to auto-detect.</span></legend>
+      <div class="fields">
+        <label class="field">Market or country <input type="text" name="market" placeholder="Indonesia"></label>
+        <label class="field">Industry <input type="text" name="industry" placeholder="Fashion e-commerce"></label>
+        <label class="field">Your brand <input type="text" name="brand"></label>
+        <label class="field">Competitors <input type="text" name="competitors" placeholder="Separate with commas"></label>
+      </div>
+    </fieldset>
+
+    <hr class="divider">
+
+    <div style="display:grid;gap:12px">
+      <label class="check"><input type="checkbox" name="auto_clean" checked>
+        <span>Fix safe data issues automatically<small>Duplicates, spacing, spelling variants, numbers and dates stored as text.</small></span></label>
+      <label class="check"><input type="checkbox" name="trends" checked>
+        <span>Include industry and competitor news<small>Adds about 10–20 seconds.</small></span></label>
+    </div>
+
+    <button class="btn wide" type="submit" id="go">Analyse file</button>
+  </form>
+</div>
+
+<div class="loading" id="loading" role="status" aria-live="polite">
+  <div class="loading-box">
+    <b id="loading-file">Analysing</b>
+    <ol class="progress" id="progress">
+      <li>Reading the data</li><li>Cleaning data</li><li>Planning charts</li>
+      <li>Writing insights</li><li>Checking industry news</li>
+    </ol>
+    <p>This usually takes under a minute. Keep this tab open.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const file = document.getElementById("file"), drop = document.getElementById("drop");
+  const link = document.getElementById("link");
+  link.addEventListener("input", () => link.setCustomValidity(""));
+  let mode = "file";
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll("[data-source]").forEach(b => b.setAttribute("aria-selected", b.dataset.source === m));
+    document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== m);
+    file.disabled = m !== "file"; link.disabled = m !== "link";
+    try { localStorage.setItem("source-mode", m); } catch (e) {}
+    if (m === "link") link.focus();
+  }
+  document.querySelectorAll("[data-source]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.source)));
+  try { if (localStorage.getItem("source-mode") === "link") setMode("link"); } catch (e) {}
+  const copyBtn = document.getElementById("copy-robot");
+  if (copyBtn) copyBtn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(document.getElementById("robot").textContent); copyBtn.textContent = "Copied"; }
+    catch (e) { copyBtn.textContent = "Select and copy"; }
+    setTimeout(() => copyBtn.textContent = "Copy", 2000);
+  });
+  const label = document.getElementById("file-label"), hint = document.getElementById("file-hint");
+  file.addEventListener("change", () => {
+    const f = file.files[0];
+    if (!f) return;
+    label.textContent = f.name;
+    hint.textContent = (f.size / 1024 / 1024).toFixed(1) + " MB · click to choose a different file";
+    drop.classList.add("has-file");
+  });
+  ["dragover", "dragenter"].forEach(e => drop.addEventListener(e, () => drop.classList.add("drag")));
+  ["dragleave", "drop"].forEach(e => drop.addEventListener(e, () => drop.classList.remove("drag")));
+
+  document.getElementById("upload-form").addEventListener("submit", (e) => {
+    if (mode === "file" && !file.files.length) { e.preventDefault(); drop.classList.add("drag"); file.click(); return; }
+    if (mode === "link" && !/google\.com\//.test(link.value)) { e.preventDefault(); link.setCustomValidity("Paste a Google Sheets or Google Drive link"); link.reportValidity(); return; }
+    document.getElementById("go").disabled = true;
+    document.getElementById("loading-file").textContent = mode === "link" ? "Reading from Google" : "Analysing " + (file.files[0]?.name || "file");
+    document.getElementById("loading").classList.add("on");
+    const items = [...document.querySelectorAll("#progress li")];
+    const trends = document.querySelector("input[name=trends]").checked;
+    if (!trends) items.at(-1).remove();
+    let i = 0;
+    const step = () => {
+      items.forEach((li, j) => { li.className = j < i ? "done" : j === i ? "now" : ""; });
+      if (i < items.length - 1) i++;
+    };
+    step(); setInterval(step, 6000);
+  });
+  // The browser "back" button can restore a disabled form; reset it.
+  window.addEventListener("pageshow", () => {
+    document.getElementById("go").disabled = false;
+    document.getElementById("loading").classList.remove("on");
+  });
+</script>
+{% endblock %}
+

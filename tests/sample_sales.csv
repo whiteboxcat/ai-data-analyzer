@@ -1,0 +1,404 @@
+Order No;Order Date;Category;Channel;City;Qty;GMV;Discount;Net;Customer Note
+INV-100000;2025-01-25;Shoes;Tokopedia;Medan;5;Rp 2.000.000;0.0;2000000.0;warna sesuai foto
+INV-100001;28/07/2025;Bag;TikTok Shop;Bandung;1;Rp 350.000;35000.0;315000.0;warna sesuai foto
+INV-100002;26/06/2025;T-Shirt;Website;Makassar;2;Rp 240.000;24000.0;216000.0;
+INV-100003;2025-04-29;Dress;TikTok Shop;Jakarta;3;Rp 750.000;75000.0;675000.0;
+INV-100004;27/04/2025;Dress;Website;Jakarta;4;Rp 1.000.000;50000.0;950000.0;kirim cepat ya
+INV-100005;20/08/2025;Dress;TikTok Shop;Makassar;1;Rp 250.000;50000.0;98000000.0;
+INV-100006;2025-01-24;Dress;TikTok Shop;Surabaya;3;Rp 750.000;38000.0;712000.0;warna sesuai foto
+INV-100007;08/07/2025;Hijab;Shopee;Surabaya;-2;Rp 120.000;12000.0;108000.0;warna sesuai foto
+INV-100008;24/02/2025;Dress;TikTok Shop;Medan;4;Rp 1.000.000;50000.0;950000.0;gift wrap
+INV-100009;2025-01-26;T-Shirt;Tokopedia;Jakarta;4;Rp 480.000;0.0;480000.0;kirim cepat ya
+INV-100010;23/05/2025;Hijab;Tokopedia;Bandung;3;Rp 360.000;36000.0;324000.0;warna sesuai foto
+INV-100011;21/09/2025;Hijab;TikTok Shop;Surabaya;2;Rp 240.000;0.0;240000.0;kirim cepat ya
+INV-100012;2025-07-18;Dress;Website;Jakarta;1;Rp 250.000;50000.0;200000.0;kirim cepat ya
+INV-100013;25/07/2025;Shoes;Website;Makassar;5;Rp 2.000.000;200000.0;1800000.0;warna sesuai foto
+INV-100014;13/07/2025;Hijab;Shopee;;4;Rp 480.000;24000.0;456000.0;gift wrap
+INV-100015;2025-08-01;Hijab;TikTok Shop;Jakarta;2;Rp 240.000;12000.0;228000.0;kirim cepat ya
+INV-100016;19/05/2025;Dress;TikTok Shop;Medan;3;Rp 750.000;75000.0;675000.0;
+INV-100017;04/02/2025;Dress;Shopee;Makassar;4;Rp 1.000.000;50000.0;950000.0;gift wrap
+INV-100018;2025-08-15;Bag;Shopee;Jakarta;4;Rp 1.400.000;70000.0;1330000.0;warna sesuai foto
+INV-100019;02/05/2025;T-Shirt;Shopee;Medan;3;Rp 360.000;18000.0;342000.0;gift wrap
+INV-100020;16/05/2025;T-Shirt;TikTok Shop;Bandung;2;Rp 240.000;12000.0;228000.0;
+INV-100021;2025-04-11;T-Shirt;Tokopedia;Makassar;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100022;19/02/2025;Hijab;Website;Jakarta;4;Rp 480.000;0.0;480000.0;
+INV-100023;08/09/2025;Bag;Tokopedia;Makassar;3;Rp 1.050.000;210000.0;840000.0;
+INV-100024;2025-07-31;T-Shirt;Website;Medan;1;Rp 120.000;6000.0;114000.0;
+INV-100025;23/06/2025;Bag;Tokopedia;Makassar;3;Rp 1.050.000;105000.0;945000.0;
+INV-100026;19/04/2025;Dress;TikTok Shop;Surabaya;4;Rp 1.000.000;0.0;1000000.0;gift wrap
+INV-100027;2025-08-11;Hijab;Shopee;Makassar;5;Rp 600.000;30000.0;570000.0;kirim cepat ya
+INV-100028;28/05/2025;Hijab;Tokopedia;Medan;3;Rp 360.000;72000.0;288000.0;
+INV-100029;30/04/2025;dress  ;TikTok Shop;Jakarta;2;Rp 500.000;25000.0;475000.0;warna sesuai foto
+INV-100030;2025-05-02;Dress;Website;Makassar;3;Rp 750.000;0.0;750000.0;warna sesuai foto
+INV-100031;03/03/2025;T-Shirt;TikTok Shop;Medan;1;Rp 120.000;12000.0;108000.0;kirim cepat ya
+INV-100032;25/01/2025;Bag;Shopee;;1;Rp 350.000;0.0;350000.0;
+INV-100033;2025-05-30;Hijab;Shopee;Bandung;4;Rp 480.000;24000.0;456000.0;
+INV-100034;28/08/2025;Bag;Shopee;Surabaya;5;Rp 1.750.000;88000.0;1662000.0;gift wrap
+INV-100035;18/01/2025;Shoes;Shopee;Bandung;5;Rp 2.000.000;200000.0;1800000.0;gift wrap
+INV-100036;2025-08-20;T-Shirt;TikTok Shop;Makassar;3;Rp 360.000;36000.0;324000.0;kirim cepat ya
+INV-100037;12/08/2025;Shoes;TikTok Shop;Makassar;1;Rp 400.000;40000.0;360000.0;warna sesuai foto
+INV-100038;16/03/2025;Dress;TikTok Shop;Surabaya;5;Rp 1.250.000;250000.0;1000000.0;warna sesuai foto
+INV-100039;2025-06-20;Dress;TikTok Shop;Makassar;3;Rp 750.000;0.0;750000.0;
+INV-100040;14/02/2025;Shoes;TikTok Shop;Bandung;2;Rp 800.000;40000.0;760000.0;kirim cepat ya
+INV-100041;24/07/2025;Shoes;TikTok Shop;Medan;5;Rp 2.000.000;0.0;2000000.0;kirim cepat ya
+INV-100042;2025-07-09;Dress;Shopee;Medan;4;Rp 1.000.000;0.0;1000000.0;warna sesuai foto
+INV-100043;06/04/2025;T-Shirt;Shopee;Bandung;4;Rp 480.000;0.0;480000.0;gift wrap
+INV-100044;19/01/2025;Hijab;Tokopedia;Bandung;2;Rp 240.000;24000.0;216000.0;
+INV-100045;2025-09-20;Shoes;TikTok Shop;Bandung;5;Rp 2.000.000;400000.0;1600000.0;warna sesuai foto
+INV-100046;01/05/2025;Hijab;Shopee;Makassar;3;Rp 360.000;72000.0;288000.0;
+INV-100047;30/08/2025;T-Shirt;Tokopedia;Surabaya;3;Rp 360.000;36000.0;324000.0;
+INV-100048;2025-07-03;T-Shirt;TikTok Shop;Surabaya;4;Rp 480.000;96000.0;384000.0;
+INV-100049;30/07/2025;T-Shirt;Shopee;Surabaya;4;Rp 480.000;0.0;480000.0;kirim cepat ya
+INV-100050;25/07/2025;Hijab;Tokopedia;Jakarta;1;Rp 120.000;24000.0;96000.0;kirim cepat ya
+INV-100051;2025-02-22;Shoes;TikTok Shop;Surabaya;2;Rp 800.000;160000.0;640000.0;
+INV-100052;09/04/2025;dress  ;TikTok Shop;Jakarta;2;Rp 240.000;0.0;240000.0;
+INV-100053;07/05/2025;Dress;Shopee;Jakarta;5;Rp 1.250.000;62000.0;1188000.0;kirim cepat ya
+INV-100054;2025-05-15;Dress;TikTok Shop;Medan;4;Rp 1.000.000;200000.0;800000.0;kirim cepat ya
+INV-100055;12/01/2025;Hijab;Shopee;Jakarta;2;Rp 240.000;12000.0;228000.0;
+INV-100056;28/05/2025;Shoes;TikTok Shop;Bandung;4;Rp 1.600.000;320000.0;1280000.0;
+INV-100057;2025-02-11;Dress;Shopee;Medan;4;Rp 1.000.000;200000.0;800000.0;
+INV-100058;20/07/2025;Dress;Tokopedia;Medan;2;Rp 500.000;25000.0;475000.0;gift wrap
+INV-100059;04/07/2025;Hijab;Shopee;Bandung;3;Rp 360.000;0.0;360000.0;gift wrap
+INV-100060;2025-09-07;dress  ;Shopee;Jakarta;5;Rp 1.250.000;62000.0;1188000.0;gift wrap
+INV-100061;21/07/2025;Shoes;TikTok Shop;Makassar;3;Rp 1.200.000;0.0;1200000.0;gift wrap
+INV-100062;09/04/2025;T-Shirt;Shopee;Makassar;1;Rp 120.000;6000.0;114000.0;
+INV-100063;2025-09-19;Dress;Shopee;Medan;4;Rp 1.000.000;100000.0;900000.0;warna sesuai foto
+INV-100064;21/04/2025;Bag;Shopee;Jakarta;3;Rp 1.050.000;52000.0;998000.0;gift wrap
+INV-100065;29/03/2025;Dress;TikTok Shop;Jakarta;3;Rp 750.000;0.0;750000.0;
+INV-100066;2025-09-02;T-Shirt;TikTok Shop;Surabaya;4;Rp 480.000;24000.0;456000.0;
+INV-100067;11/04/2025;Dress;Website;Jakarta;5;Rp 1.250.000;125000.0;1125000.0;
+INV-100068;21/01/2025;Dress;Shopee;Makassar;2;Rp 500.000;0.0;500000.0;
+INV-100069;2025-05-07;Dress;Tokopedia;Surabaya;3;Rp 750.000;0.0;750000.0;warna sesuai foto
+INV-100070;03/08/2025;Dress;Shopee;Surabaya;1;Rp 250.000;50000.0;200000.0;
+INV-100071;21/02/2025;Dress;Tokopedia;Makassar;4;Rp 1.000.000;0.0;1000000.0;gift wrap
+INV-100072;2025-05-05;Dress;Website;Makassar;3;Rp 750.000;38000.0;712000.0;
+INV-100073;05/02/2025;Hijab;TikTok Shop;Surabaya;2;Rp 240.000;0.0;240000.0;gift wrap
+INV-100074;05/07/2025;Hijab;Tokopedia;Surabaya;4;Rp 480.000;0.0;480000.0;kirim cepat ya
+INV-100075;2025-05-09;T-Shirt;Shopee;Bandung;3;Rp 360.000;18000.0;342000.0;warna sesuai foto
+INV-100076;31/03/2025;T-Shirt;Website;Medan;3;Rp 360.000;36000.0;324000.0;
+INV-100077;03/03/2025;T-Shirt;Tokopedia;Makassar;3;Rp 360.000;0.0;360000.0;kirim cepat ya
+INV-100078;2025-06-02;Shoes;Shopee;Makassar;2;Rp 800.000;0.0;800000.0;warna sesuai foto
+INV-100079;30/06/2025;Shoes;Shopee;Makassar;1;Rp 400.000;0.0;400000.0;
+INV-100080;11/09/2025;Dress;Shopee;Jakarta;5;Rp 1.250.000;125000.0;1125000.0;
+INV-100081;2025-04-29;Dress;Shopee;Surabaya;1;Rp 250.000;50000.0;200000.0;
+INV-100082;13/02/2025;Dress;Shopee;Bandung;2;Rp 500.000;0.0;500000.0;warna sesuai foto
+INV-100083;13/08/2025;Dress;Tokopedia;Jakarta;4;Rp 1.000.000;50000.0;950000.0;
+INV-100084;2025-06-20;Hijab;Tokopedia;Surabaya;1;Rp 120.000;6000.0;114000.0;gift wrap
+INV-100085;09/07/2025;T-Shirt;Shopee;Jakarta;4;Rp 480.000;24000.0;456000.0;gift wrap
+INV-100086;27/01/2025;Dress;Tokopedia;Makassar;4;Rp 1.000.000;0.0;1000000.0;
+INV-100087;2025-03-26;T-Shirt;Website;Jakarta;4;Rp 480.000;0.0;480000.0;kirim cepat ya
+INV-100088;27/07/2025;T-Shirt;TikTok Shop;Jakarta;2;Rp 240.000;24000.0;216000.0;
+INV-100089;13/08/2025;Dress;Tokopedia;Jakarta;1;Rp 250.000;12000.0;238000.0;
+INV-100090;2025-04-28;Shoes;Shopee;Jakarta;5;Rp 2.000.000;100000.0;1900000.0;gift wrap
+INV-100091;06/08/2025;Dress;TikTok Shop;Bandung;2;Rp 500.000;25000.0;475000.0;gift wrap
+INV-100092;16/08/2025;Bag;Shopee;Surabaya;5;Rp 1.750.000;350000.0;1400000.0;kirim cepat ya
+INV-100093;2025-04-15;Dress;Shopee;Makassar;1;Rp 250.000;25000.0;225000.0;kirim cepat ya
+INV-100094;31/08/2025;Shoes;Website;Surabaya;1;Rp 400.000;20000.0;380000.0;
+INV-100095;19/03/2025;Bag;Tokopedia;Bandung;4;Rp 1.400.000;0.0;1400000.0;
+INV-100096;2025-03-06;Bag;TikTok Shop;Medan;5;Rp 1.750.000;350000.0;1400000.0;kirim cepat ya
+INV-100097;04/07/2025;Shoes;Tokopedia;Medan;5;Rp 2.000.000;400000.0;1600000.0;warna sesuai foto
+INV-100098;21/06/2025;Shoes;TikTok Shop;Medan;4;Rp 1.600.000;0.0;1600000.0;gift wrap
+INV-100099;2025-02-07;Hijab;Shopee;Surabaya;2;Rp 240.000;48000.0;192000.0;warna sesuai foto
+INV-100100;13/08/2025;Shoes;Shopee;Bandung;5;Rp 2.000.000;200000.0;1800000.0;
+INV-100101;23/02/2025;Dress;Shopee;Makassar;4;Rp 1.000.000;0.0;1000000.0;kirim cepat ya
+INV-100102;2025-08-06;T-Shirt;Shopee;Makassar;1;Rp 120.000;24000.0;96000.0;
+INV-100103;02/01/2025;T-Shirt;TikTok Shop;Medan;1;Rp 120.000;0.0;120000.0;kirim cepat ya
+INV-100104;04/08/2025;Shoes;Shopee;Medan;5;Rp 2.000.000;0.0;2000000.0;
+INV-100105;2025-08-01;T-Shirt;Tokopedia;Makassar;2;Rp 240.000;0.0;240000.0;kirim cepat ya
+INV-100106;30/07/2025;T-Shirt;TikTok Shop;Medan;4;Rp 480.000;24000.0;456000.0;kirim cepat ya
+INV-100107;29/06/2025;Hijab;TikTok Shop;Makassar;1;Rp 120.000;12000.0;108000.0;
+INV-100108;2025-05-08;T-Shirt;Tokopedia;Jakarta;2;Rp 240.000;12000.0;228000.0;
+INV-100109;10/07/2025;Dress;Tokopedia;Surabaya;2;Rp 500.000;0.0;500000.0;warna sesuai foto
+INV-100110;16/03/2025;T-Shirt;Website;Jakarta;2;Rp 240.000;0.0;240000.0;gift wrap
+INV-100111;2025-07-30;T-Shirt;TikTok Shop;Jakarta;4;Rp 480.000;96000.0;384000.0;gift wrap
+INV-100112;31/05/2025;Dress;TikTok Shop;Bandung;5;Rp 1.250.000;250000.0;1000000.0;warna sesuai foto
+INV-100113;04/05/2025;T-Shirt;Website;Surabaya;5;Rp 600.000;120000.0;480000.0;kirim cepat ya
+INV-100114;2025-05-17;T-Shirt;TikTok Shop;Bandung;4;Rp 480.000;0.0;480000.0;gift wrap
+INV-100115;03/06/2025;T-Shirt;Shopee;Bandung;2;Rp 240.000;48000.0;192000.0;warna sesuai foto
+INV-100116;11/01/2025;T-Shirt;Tokopedia;Medan;5;Rp 600.000;60000.0;540000.0;
+INV-100117;2025-02-07;Hijab;Shopee;Makassar;3;Rp 360.000;36000.0;324000.0;kirim cepat ya
+INV-100118;08/03/2025;T-Shirt;TikTok Shop;Makassar;3;Rp 360.000;0.0;360000.0;kirim cepat ya
+INV-100119;31/01/2025;Bag;Website;Surabaya;4;Rp 1.400.000;280000.0;1120000.0;
+INV-100120;2025-04-29;Bag;Tokopedia;Surabaya;4;Rp 1.400.000;70000.0;1330000.0;
+INV-100121;30/06/2025;T-Shirt;Tokopedia;Medan;5;Rp 600.000;0.0;600000.0;
+INV-100122;26/06/2025;T-Shirt;Shopee;Jakarta;3;Rp 360.000;0.0;360000.0;
+INV-100123;2025-05-08;T-Shirt;Website;Bandung;4;Rp 480.000;24000.0;456000.0;
+INV-100124;19/08/2025;Shoes;Shopee;Bandung;4;Rp 1.600.000;0.0;1600000.0;gift wrap
+INV-100125;02/06/2025;Hijab;Shopee;Jakarta;2;Rp 240.000;12000.0;228000.0;
+INV-100126;2025-01-22;Shoes;Shopee;Medan;2;Rp 800.000;40000.0;760000.0;
+INV-100127;26/07/2025;T-Shirt;Shopee;Surabaya;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100128;05/06/2025;t-shirt  ;Tokopedia;Jakarta;1;Rp 120.000;0.0;120000.0;kirim cepat ya
+INV-100129;2025-06-21;T-Shirt;Tokopedia;Medan;2;Rp 240.000;24000.0;216000.0;warna sesuai foto
+INV-100130;02/06/2025;Hijab;Shopee;Jakarta;4;Rp 480.000;96000.0;384000.0;
+INV-100131;30/05/2025;Dress;Shopee;Medan;5;Rp 1.250.000;250000.0;1000000.0;warna sesuai foto
+INV-100132;2025-01-25;Hijab;Shopee;Jakarta;3;Rp 360.000;72000.0;288000.0;kirim cepat ya
+INV-100133;31/05/2025;Shoes;Shopee;Bandung;2;Rp 800.000;;800000.0;warna sesuai foto
+INV-100134;03/08/2025;Dress;Shopee;Makassar;3;Rp 750.000;150000.0;600000.0;
+INV-100135;2025-03-24;Hijab;TikTok Shop;Surabaya;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100136;12/06/2025;Dress;Shopee;Medan;3;Rp 750.000;38000.0;712000.0;gift wrap
+INV-100137;09/01/2025;Hijab;Shopee;Medan;1;Rp 120.000;6000.0;114000.0;
+INV-100138;2025-04-04;Dress;Shopee;Makassar;3;Rp 750.000;75000.0;675000.0;warna sesuai foto
+INV-100139;28/04/2025;Bag;Tokopedia;Jakarta;3;Rp 1.050.000;52000.0;998000.0;warna sesuai foto
+INV-100140;23/09/2025;Dress;Shopee;Medan;4;Rp 1.000.000;50000.0;950000.0;gift wrap
+INV-100141;2025-02-27;Bag;Shopee;Makassar;5;Rp 1.750.000;350000.0;1400000.0;kirim cepat ya
+INV-100142;16/03/2025;Shoes;TikTok Shop;Medan;5;Rp 2.000.000;400000.0;1600000.0;
+INV-100143;21/04/2025;Hijab;Shopee;Jakarta;4;Rp 480.000;24000.0;456000.0;
+INV-100144;2025-09-26;Shoes;Tokopedia;Makassar;2;Rp 800.000;160000.0;640000.0;gift wrap
+INV-100145;19/08/2025;Shoes;Tokopedia;Jakarta;3;Rp 1.200.000;60000.0;1140000.0;
+INV-100146;10/01/2025;Bag;Shopee;Bandung;1;Rp 350.000;70000.0;280000.0;
+INV-100147;2025-03-05;T-Shirt;Tokopedia;Bandung;5;Rp 600.000;60000.0;540000.0;
+INV-100148;10/08/2025;Hijab;TikTok Shop;Bandung;5;Rp 600.000;30000.0;570000.0;
+INV-100149;16/01/2025;Dress;TikTok Shop;Bandung;5;Rp 1.250.000;0.0;1250000.0;
+INV-100150;2025-08-20;Hijab;Shopee;Jakarta;2;Rp 240.000;24000.0;216000.0;
+INV-100151;17/03/2025;Dress;Shopee;Bandung;2;Rp 500.000;25000.0;475000.0;warna sesuai foto
+INV-100152;05/09/2025;Hijab;Shopee;Makassar;5;Rp 600.000;0.0;600000.0;
+INV-100153;2025-03-21;Hijab;Tokopedia;Bandung;3;Rp 360.000;0.0;360000.0;
+INV-100154;28/04/2025;T-Shirt;TikTok Shop;Surabaya;4;Rp 480.000;96000.0;384000.0;warna sesuai foto
+INV-100155;28/06/2025;T-Shirt;Shopee;Makassar;3;Rp 360.000;0.0;360000.0;gift wrap
+INV-100156;2025-02-04;Shoes;Shopee;Jakarta;3;Rp 1.200.000;240000.0;960000.0;
+INV-100157;31/05/2025;Shoes;Website;Bandung;4;Rp 1.600.000;320000.0;1280000.0;warna sesuai foto
+INV-100158;17/05/2025;T-Shirt;Shopee;Bandung;5;Rp 600.000;0.0;600000.0;
+INV-100159;2025-07-31;Hijab;Tokopedia;Bandung;2;Rp 240.000;24000.0;216000.0;gift wrap
+INV-100160;26/09/2025;Bag;TikTok Shop;Makassar;5;Rp 1.750.000;175000.0;1575000.0;warna sesuai foto
+INV-100161;29/06/2025;Dress;Shopee;Bandung;2;Rp 500.000;;475000.0;
+INV-100162;2025-04-21;Dress;Shopee;Makassar;3;Rp 750.000;75000.0;675000.0;
+INV-100163;20/04/2025;Dress;Shopee;Jakarta;5;Rp 1.250.000;62000.0;1188000.0;warna sesuai foto
+INV-100164;23/04/2025;Hijab;Website;Medan;5;Rp 600.000;30000.0;570000.0;
+INV-100165;2025-08-08;T-Shirt;Shopee;Bandung;5;Rp 600.000;30000.0;570000.0;
+INV-100166;28/03/2025;Shoes;Shopee;Surabaya;2;Rp 800.000;160000.0;640000.0;
+INV-100167;15/02/2025;Hijab;Shopee;Surabaya;5;Rp 600.000;60000.0;540000.0;kirim cepat ya
+INV-100168;2025-04-01;T-Shirt;Shopee;Medan;5;Rp 600.000;30000.0;570000.0;gift wrap
+INV-100169;07/01/2025;Shoes;Tokopedia;Medan;5;Rp 2.000.000;400000.0;1600000.0;
+INV-100170;29/01/2025;Shoes;Shopee;Medan;1;Rp 400.000;80000.0;320000.0;warna sesuai foto
+INV-100171;2025-01-25;dress  ;Tokopedia;Jakarta;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100172;28/07/2025;T-Shirt;Tokopedia;Bandung;5;Rp 600.000;60000.0;540000.0;kirim cepat ya
+INV-100173;15/07/2025;T-Shirt;TikTok Shop;Makassar;4;Rp 480.000;24000.0;456000.0;gift wrap
+INV-100174;2025-07-08;Dress;Shopee;Jakarta;2;Rp 500.000;100000.0;400000.0;
+INV-100175;05/05/2025;Dress;TikTok Shop;Bandung;4;Rp 1.000.000;50000.0;950000.0;gift wrap
+INV-100176;13/07/2025;Bag;Tokopedia;Bandung;1;Rp 350.000;18000.0;332000.0;gift wrap
+INV-100177;2025-02-13;T-Shirt;Shopee;Makassar;3;Rp 360.000;18000.0;342000.0;gift wrap
+INV-100178;01/09/2025;T-Shirt;TikTok Shop;Surabaya;4;Rp 480.000;96000.0;384000.0;warna sesuai foto
+INV-100179;16/05/2025;Hijab;TikTok Shop;Bandung;3;Rp 360.000;36000.0;324000.0;kirim cepat ya
+INV-100180;2025-09-11;Hijab;Shopee;;4;Rp 480.000;24000.0;456000.0;warna sesuai foto
+INV-100181;11/02/2025;Bag;Website;Jakarta;2;Rp 700.000;35000.0;665000.0;
+INV-100182;15/05/2025;Shoes;Tokopedia;Makassar;4;Rp 1.600.000;80000.0;1520000.0;warna sesuai foto
+INV-100183;2025-07-08;T-Shirt;Tokopedia;Makassar;4;Rp 480.000;48000.0;432000.0;warna sesuai foto
+INV-100184;14/05/2025;T-Shirt;Website;Medan;4;Rp 480.000;24000.0;456000.0;
+INV-100185;01/05/2025;Bag;Shopee;Medan;2;Rp 700.000;70000.0;630000.0;kirim cepat ya
+INV-100186;2025-02-14;Hijab;TikTok Shop;;2;Rp 240.000;12000.0;228000.0;
+INV-100187;13/04/2025;Bag;Shopee;Medan;2;Rp 700.000;35000.0;665000.0;
+INV-100188;06/03/2025;Dress;TikTok Shop;Makassar;3;Rp 750.000;150000.0;600000.0;kirim cepat ya
+INV-100189;2025-03-23;Shoes;Tokopedia;Bandung;3;Rp 1.200.000;60000.0;1140000.0;
+INV-100190;04/07/2025;Hijab;Shopee;Bandung;2;Rp 240.000;;240000.0;kirim cepat ya
+INV-100191;20/06/2025;Dress;Tokopedia;Medan;3;Rp 750.000;38000.0;712000.0;gift wrap
+INV-100192;2025-06-13;Hijab;Shopee;Jakarta;2;Rp 240.000;24000.0;216000.0;
+INV-100193;08/04/2025;Hijab;Shopee;Makassar;2;Rp 240.000;0.0;240000.0;
+INV-100194;17/09/2025;Dress;Shopee;Medan;4;Rp 1.000.000;50000.0;950000.0;kirim cepat ya
+INV-100195;2025-01-24;T-Shirt;Shopee;Medan;5;Rp 600.000;0.0;600000.0;
+INV-100196;03/04/2025;Shoes;Shopee;Surabaya;2;Rp 800.000;80000.0;720000.0;gift wrap
+INV-100197;01/02/2025;T-Shirt;Shopee;Surabaya;5;Rp 600.000;;540000.0;warna sesuai foto
+INV-100198;2025-04-02;T-Shirt;TikTok Shop;;3;Rp 360.000;72000.0;288000.0;
+INV-100199;17/09/2025;T-Shirt;TikTok Shop;Medan;1;Rp 120.000;6000.0;114000.0;
+INV-100200;09/04/2025;T-Shirt;TikTok Shop;Medan;2;Rp 240.000;48000.0;192000.0;warna sesuai foto
+INV-100201;2025-09-03;Bag;Shopee;Medan;1;Rp 350.000;0.0;350000.0;warna sesuai foto
+INV-100202;14/05/2025;Shoes;TikTok Shop;Makassar;1;Rp 400.000;80000.0;320000.0;
+INV-100203;08/07/2025;Dress;Tokopedia;Makassar;2;Rp 500.000;;450000.0;warna sesuai foto
+INV-100204;2025-05-04;Bag;Shopee;Medan;3;Rp 1.050.000;;840000.0;kirim cepat ya
+INV-100205;13/03/2025;Shoes;Shopee;Surabaya;4;Rp 1.600.000;320000.0;1280000.0;kirim cepat ya
+INV-100206;26/07/2025;T-Shirt;TikTok Shop;Bandung;1;Rp 120.000;12000.0;108000.0;kirim cepat ya
+INV-100207;2025-09-19;Shoes;Shopee;Bandung;5;Rp 2.000.000;100000.0;1900000.0;
+INV-100208;13/03/2025;Dress;Tokopedia;Medan;2;Rp 500.000;50000.0;450000.0;
+INV-100209;30/07/2025;Bag;Website;Makassar;1;Rp 350.000;70000.0;280000.0;gift wrap
+INV-100210;2025-03-12;Hijab;Shopee;Surabaya;4;Rp 480.000;96000.0;384000.0;
+INV-100211;13/07/2025;Hijab;Shopee;Bandung;4;Rp 480.000;96000.0;384000.0;warna sesuai foto
+INV-100212;02/08/2025;Dress;Website;Jakarta;4;Rp 1.000.000;0.0;1000000.0;kirim cepat ya
+INV-100213;2025-05-02;Shoes;Tokopedia;;1;Rp 400.000;40000.0;360000.0;
+INV-100214;18/07/2025;Dress;Shopee;;1;Rp 250.000;0.0;250000.0;gift wrap
+INV-100215;15/03/2025;Dress;TikTok Shop;Bandung;2;Rp 500.000;50000.0;450000.0;gift wrap
+INV-100216;2025-01-22;Dress;TikTok Shop;Bandung;3;Rp 750.000;150000.0;600000.0;
+INV-100217;27/01/2025;Shoes;Tokopedia;Surabaya;5;Rp 2.000.000;0.0;2000000.0;warna sesuai foto
+INV-100218;01/05/2025;Dress;Tokopedia;Bandung;2;Rp 500.000;50000.0;450000.0;
+INV-100219;2025-09-01;Bag;Shopee;Medan;1;Rp 350.000;70000.0;280000.0;kirim cepat ya
+INV-100220;04/02/2025;Hijab;Shopee;Surabaya;5;Rp 600.000;120000.0;480000.0;gift wrap
+INV-100221;04/05/2025;shoes  ;Tokopedia;Jakarta;1;Rp 250.000;12000.0;238000.0;
+INV-100222;2025-07-10;Dress;Shopee;Surabaya;1;Rp 250.000;0.0;250000.0;
+INV-100223;24/02/2025;Dress;TikTok Shop;Jakarta;3;Rp 750.000;150000.0;600000.0;kirim cepat ya
+INV-100224;14/07/2025;Hijab;TikTok Shop;Surabaya;3;Rp 360.000;72000.0;288000.0;
+INV-100225;2025-03-24;Shoes;Shopee;Medan;4;Rp 1.600.000;160000.0;1440000.0;warna sesuai foto
+INV-100226;07/08/2025;Dress;Tokopedia;Jakarta;5;Rp 1.250.000;250000.0;1000000.0;gift wrap
+INV-100227;06/06/2025;Shoes;Shopee;Medan;5;Rp 2.000.000;0.0;2000000.0;warna sesuai foto
+INV-100228;2025-05-28;Dress;TikTok Shop;Surabaya;2;Rp 500.000;50000.0;450000.0;
+INV-100229;17/02/2025;Shoes;Shopee;Makassar;5;Rp 2.000.000;0.0;2000000.0;kirim cepat ya
+INV-100230;06/05/2025;Bag;Tokopedia;Medan;4;Rp 1.400.000;280000.0;1120000.0;kirim cepat ya
+INV-100231;2025-08-20;Shoes;Tokopedia;Surabaya;1;Rp 400.000;40000.0;360000.0;
+INV-100232;06/01/2025;Hijab;Shopee;Bandung;5;Rp 600.000;120000.0;480000.0;kirim cepat ya
+INV-100233;24/07/2025;Shoes;TikTok Shop;Jakarta;1;Rp 400.000;40000.0;360000.0;kirim cepat ya
+INV-100234;2025-05-14;Dress;TikTok Shop;Jakarta;3;Rp 750.000;0.0;750000.0;kirim cepat ya
+INV-100235;14/07/2025;Dress;Tokopedia;Makassar;4;Rp 1.000.000;0.0;1000000.0;
+INV-100236;29/06/2025;hijab  ;TikTok Shop;Makassar;2;Rp 500.000;25000.0;475000.0;kirim cepat ya
+INV-100237;2025-04-27;T-Shirt;Website;Jakarta;2;Rp 240.000;24000.0;216000.0;
+INV-100238;25/03/2025;Hijab;Tokopedia;Surabaya;3;Rp 360.000;0.0;360000.0;warna sesuai foto
+INV-100239;19/06/2025;Hijab;Tokopedia;Jakarta;5;Rp 600.000;120000.0;480000.0;warna sesuai foto
+INV-100240;2025-02-07;Shoes;Shopee;Surabaya;2;Rp 800.000;0.0;800000.0;warna sesuai foto
+INV-100241;07/06/2025;Dress;TikTok Shop;Surabaya;4;Rp 1.000.000;50000.0;950000.0;
+INV-100242;26/01/2025;t-shirt  ;Tokopedia;Surabaya;3;Rp 360.000;0.0;360000.0;gift wrap
+INV-100243;2025-06-25;hijab  ;Tokopedia;Bandung;1;Rp 250.000;12000.0;238000.0;kirim cepat ya
+INV-100244;19/06/2025;T-Shirt;Shopee;Jakarta;4;Rp 480.000;24000.0;456000.0;warna sesuai foto
+INV-100245;23/01/2025;Hijab;TikTok Shop;Makassar;5;Rp 600.000;0.0;600000.0;
+INV-100246;2025-07-24;Bag;Shopee;Medan;3;Rp 1.050.000;105000.0;945000.0;kirim cepat ya
+INV-100247;23/04/2025;Hijab;TikTok Shop;;1;Rp 120.000;24000.0;96000.0;gift wrap
+INV-100248;01/08/2025;Dress;Shopee;Jakarta;1;Rp 250.000;50000.0;200000.0;
+INV-100249;2025-01-12;Hijab;Website;Medan;3;Rp 360.000;18000.0;342000.0;gift wrap
+INV-100250;18/02/2025;Dress;Shopee;Makassar;3;Rp 750.000;150000.0;600000.0;gift wrap
+INV-100251;14/05/2025;Shoes;Shopee;Jakarta;3;Rp 1.200.000;240000.0;960000.0;
+INV-100252;2025-02-20;Hijab;TikTok Shop;Medan;2;Rp 240.000;48000.0;192000.0;gift wrap
+INV-100253;31/03/2025;Dress;Website;Surabaya;3;Rp 750.000;38000.0;712000.0;kirim cepat ya
+INV-100254;28/06/2025;Dress;Shopee;Medan;2;Rp 500.000;100000.0;400000.0;warna sesuai foto
+INV-100255;2025-02-09;Dress;Tokopedia;Bandung;4;Rp 1.000.000;100000.0;900000.0;warna sesuai foto
+INV-100256;02/07/2025;Bag;TikTok Shop;Makassar;4;Rp 1.400.000;0.0;1400000.0;
+INV-100257;28/01/2025;T-Shirt;TikTok Shop;Jakarta;4;Rp 480.000;24000.0;456000.0;
+INV-100258;2025-02-17;Shoes;Shopee;Surabaya;1;Rp 400.000;40000.0;360000.0;warna sesuai foto
+INV-100259;08/06/2025;Hijab;Tokopedia;Surabaya;5;Rp 600.000;0.0;600000.0;kirim cepat ya
+INV-100260;03/08/2025;Hijab;TikTok Shop;Surabaya;1;Rp 120.000;6000.0;114000.0;gift wrap
+INV-100261;2025-02-16;Dress;TikTok Shop;Surabaya;5;Rp 1.250.000;250000.0;1000000.0;warna sesuai foto
+INV-100262;22/03/2025;Bag;TikTok Shop;Surabaya;1;Rp 350.000;0.0;350000.0;warna sesuai foto
+INV-100263;07/09/2025;T-Shirt;Tokopedia;Jakarta;3;Rp 360.000;18000.0;342000.0;
+INV-100264;2025-09-25;Hijab;Shopee;Medan;1;Rp 120.000;;120000.0;kirim cepat ya
+INV-100265;06/06/2025;Hijab;Website;Bandung;1;Rp 120.000;12000.0;108000.0;
+INV-100266;01/05/2025;dress  ;TikTok Shop;Makassar;4;Rp 480.000;0.0;480000.0;gift wrap
+INV-100267;2025-04-04;Bag;TikTok Shop;Medan;4;Rp 1.400.000;280000.0;1120000.0;kirim cepat ya
+INV-100268;15/06/2025;Dress;Shopee;Jakarta;1;Rp 250.000;0.0;250000.0;gift wrap
+INV-100269;09/06/2025;T-Shirt;Shopee;Jakarta;5;Rp 600.000;120000.0;480000.0;warna sesuai foto
+INV-100270;2025-03-21;shoes  ;TikTok Shop;Bandung;2;Rp 240.000;48000.0;192000.0;kirim cepat ya
+INV-100271;07/01/2025;T-Shirt;Shopee;Bandung;2;Rp 240.000;48000.0;192000.0;
+INV-100272;10/02/2025;bag  ;Website;Surabaya;2;Rp 500.000;100000.0;400000.0;
+INV-100273;2025-09-16;Dress;Shopee;Medan;3;Rp 750.000;0.0;750000.0;warna sesuai foto
+INV-100274;23/04/2025;T-Shirt;TikTok Shop;Bandung;1;Rp 120.000;24000.0;96000.0;kirim cepat ya
+INV-100275;11/05/2025;T-Shirt;TikTok Shop;Medan;3;Rp 360.000;36000.0;324000.0;kirim cepat ya
+INV-100276;2025-05-07;T-Shirt;Shopee;Jakarta;2;Rp 240.000;48000.0;192000.0;gift wrap
+INV-100277;31/07/2025;Hijab;Shopee;Makassar;1;Rp 120.000;24000.0;96000.0;gift wrap
+INV-100278;18/01/2025;Hijab;Tokopedia;Surabaya;2;Rp 240.000;24000.0;216000.0;gift wrap
+INV-100279;2025-01-23;T-Shirt;Tokopedia;Bandung;4;Rp 480.000;24000.0;456000.0;
+INV-100280;16/03/2025;T-Shirt;Tokopedia;Bandung;4;Rp 480.000;0.0;480000.0;
+INV-100281;12/05/2025;Dress;Tokopedia;Makassar;2;Rp 500.000;0.0;500000.0;kirim cepat ya
+INV-100282;2025-07-01;Hijab;Website;Surabaya;2;Rp 240.000;12000.0;228000.0;
+INV-100283;13/05/2025;T-Shirt;Tokopedia;Surabaya;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100284;30/04/2025;Dress;Shopee;Surabaya;4;Rp 1.000.000;100000.0;900000.0;gift wrap
+INV-100285;2025-09-11;T-Shirt;Shopee;Surabaya;5;Rp 600.000;30000.0;570000.0;
+INV-100286;13/02/2025;T-Shirt;Shopee;Jakarta;5;Rp 600.000;0.0;600000.0;kirim cepat ya
+INV-100287;04/06/2025;Dress;Shopee;Jakarta;5;Rp 1.250.000;125000.0;1125000.0;warna sesuai foto
+INV-100288;2025-05-27;Hijab;Shopee;;5;Rp 600.000;60000.0;540000.0;gift wrap
+INV-100289;08/05/2025;Hijab;TikTok Shop;Bandung;3;Rp 360.000;72000.0;288000.0;
+INV-100290;07/08/2025;Hijab;Shopee;Surabaya;2;Rp 240.000;24000.0;216000.0;
+INV-100291;2025-03-14;Hijab;Website;Surabaya;2;Rp 240.000;24000.0;216000.0;
+INV-100292;15/09/2025;Hijab;Shopee;Medan;2;Rp 240.000;48000.0;192000.0;kirim cepat ya
+INV-100293;31/03/2025;T-Shirt;Shopee;Surabaya;4;Rp 480.000;24000.0;456000.0;
+INV-100294;2025-05-28;Shoes;TikTok Shop;Makassar;4;Rp 1.600.000;320000.0;1280000.0;warna sesuai foto
+INV-100295;21/05/2025;T-Shirt;TikTok Shop;Medan;5;Rp 600.000;30000.0;570000.0;gift wrap
+INV-100296;18/08/2025;T-Shirt;Shopee;Jakarta;1;Rp 120.000;0.0;120000.0;
+INV-100297;2025-04-29;Hijab;Shopee;Surabaya;3;Rp 360.000;18000.0;342000.0;gift wrap
+INV-100298;18/03/2025;T-Shirt;Shopee;;2;Rp 240.000;0.0;240000.0;
+INV-100299;06/01/2025;T-Shirt;Tokopedia;Surabaya;5;Rp 600.000;0.0;600000.0;gift wrap
+INV-100300;2025-04-09;t-shirt  ;Tokopedia;Surabaya;2;Rp 240.000;48000.0;192000.0;
+INV-100301;12/08/2025;Shoes;Shopee;Jakarta;1;Rp 400.000;80000.0;320000.0;
+INV-100302;03/01/2025;Bag;Shopee;Jakarta;3;Rp 1.050.000;0.0;1050000.0;kirim cepat ya
+INV-100303;2025-08-30;T-Shirt;Tokopedia;Bandung;5;Rp 600.000;120000.0;480000.0;kirim cepat ya
+INV-100304;27/05/2025;T-Shirt;Website;Medan;5;Rp 600.000;0.0;600000.0;
+INV-100305;07/02/2025;Shoes;TikTok Shop;Surabaya;1;Rp 400.000;20000.0;380000.0;warna sesuai foto
+INV-100306;2025-03-23;T-Shirt;Tokopedia;Makassar;2;Rp 240.000;24000.0;216000.0;warna sesuai foto
+INV-100307;30/05/2025;Shoes;Shopee;Surabaya;1;Rp 400.000;20000.0;380000.0;warna sesuai foto
+INV-100308;27/03/2025;T-Shirt;Shopee;Makassar;2;Rp 240.000;24000.0;216000.0;
+INV-100309;2025-01-30;Dress;Shopee;Surabaya;3;Rp 750.000;150000.0;600000.0;kirim cepat ya
+INV-100310;29/06/2025;Dress;TikTok Shop;Bandung;2;Rp 500.000;0.0;500000.0;warna sesuai foto
+INV-100311;01/07/2025;Shoes;TikTok Shop;Medan;1;Rp 400.000;0.0;400000.0;gift wrap
+INV-100312;2025-02-02;Dress;Website;Jakarta;3;Rp 750.000;150000.0;600000.0;
+INV-100313;17/03/2025;T-Shirt;Website;Makassar;1;Rp 120.000;12000.0;108000.0;
+INV-100314;07/03/2025;T-Shirt;Website;Surabaya;2;Rp 240.000;24000.0;216000.0;kirim cepat ya
+INV-100315;2025-06-28;Dress;Website;Bandung;1;Rp 250.000;12000.0;238000.0;warna sesuai foto
+INV-100316;17/07/2025;T-Shirt;Shopee;Medan;1;Rp 120.000;6000.0;114000.0;
+INV-100317;16/07/2025;Hijab;Shopee;Medan;3;Rp 360.000;36000.0;324000.0;warna sesuai foto
+INV-100318;2025-09-11;Dress;Shopee;Jakarta;5;Rp 1.250.000;125000.0;1125000.0;
+INV-100319;27/07/2025;Shoes;Tokopedia;Makassar;4;Rp 1.600.000;0.0;1600000.0;warna sesuai foto
+INV-100320;28/03/2025;Shoes;Shopee;Medan;1;Rp 400.000;40000.0;360000.0;warna sesuai foto
+INV-100321;2025-01-30;T-Shirt;TikTok Shop;Makassar;1;Rp 120.000;12000.0;108000.0;kirim cepat ya
+INV-100322;15/06/2025;Dress;Tokopedia;;2;Rp 500.000;0.0;500000.0;warna sesuai foto
+INV-100323;05/09/2025;Hijab;Tokopedia;Medan;4;Rp 480.000;24000.0;456000.0;
+INV-100324;2025-09-21;Dress;Shopee;Bandung;4;Rp 1.000.000;200000.0;800000.0;kirim cepat ya
+INV-100325;04/03/2025;T-Shirt;Shopee;Makassar;5;Rp 600.000;60000.0;540000.0;kirim cepat ya
+INV-100326;05/03/2025;Bag;Shopee;Makassar;2;Rp 700.000;0.0;700000.0;
+INV-100327;2025-01-11;Bag;TikTok Shop;Makassar;1;Rp 350.000;0.0;350000.0;
+INV-100328;08/02/2025;Shoes;Tokopedia;Bandung;1;Rp 400.000;40000.0;360000.0;
+INV-100329;30/05/2025;T-Shirt;TikTok Shop;Medan;1;Rp 120.000;6000.0;114000.0;
+INV-100330;2025-05-28;Hijab;Shopee;Surabaya;1;Rp 120.000;24000.0;96000.0;kirim cepat ya
+INV-100331;11/04/2025;Hijab;Shopee;Bandung;5;Rp 600.000;60000.0;540000.0;
+INV-100332;25/03/2025;T-Shirt;Tokopedia;Medan;2;Rp 240.000;48000.0;192000.0;
+INV-100333;2025-08-13;Hijab;TikTok Shop;Jakarta;5;Rp 600.000;0.0;600000.0;warna sesuai foto
+INV-100334;05/05/2025;Dress;TikTok Shop;Medan;3;Rp 750.000;38000.0;712000.0;
+INV-100335;07/08/2025;Dress;Shopee;Jakarta;3;Rp 750.000;0.0;750000.0;
+INV-100336;2025-09-18;T-Shirt;Website;Bandung;3;Rp 360.000;36000.0;324000.0;
+INV-100337;27/03/2025;Dress;Shopee;Bandung;5;Rp 1.250.000;0.0;1250000.0;
+INV-100338;24/02/2025;Dress;TikTok Shop;Bandung;1;Rp 250.000;12000.0;238000.0;gift wrap
+INV-100339;2025-09-15;Shoes;Shopee;Bandung;1;Rp 400.000;20000.0;380000.0;warna sesuai foto
+INV-100340;21/06/2025;Bag;Shopee;Bandung;3;Rp 1.050.000;0.0;1050000.0;
+INV-100341;20/03/2025;Hijab;TikTok Shop;Bandung;2;Rp 240.000;0.0;240000.0;gift wrap
+INV-100342;2025-06-17;Shoes;Shopee;Bandung;3;Rp 1.200.000;120000.0;1080000.0;
+INV-100343;20/05/2025;Bag;Tokopedia;Bandung;4;Rp 1.400.000;280000.0;1120000.0;
+INV-100344;02/09/2025;Dress;Tokopedia;Medan;3;Rp 750.000;0.0;750000.0;
+INV-100345;2025-03-11;T-Shirt;Shopee;Bandung;2;Rp 240.000;12000.0;228000.0;
+INV-100346;25/09/2025;T-Shirt;TikTok Shop;Medan;2;Rp 240.000;0.0;240000.0;gift wrap
+INV-100347;10/09/2025;Dress;TikTok Shop;Makassar;4;Rp 1.000.000;200000.0;800000.0;warna sesuai foto
+INV-100348;2025-02-18;Shoes;TikTok Shop;Makassar;2;Rp 800.000;40000.0;760000.0;kirim cepat ya
+INV-100349;14/02/2025;T-Shirt;Shopee;Jakarta;3;Rp 360.000;72000.0;288000.0;
+INV-100350;24/05/2025;T-Shirt;Tokopedia;Medan;3;Rp 360.000;0.0;360000.0;gift wrap
+INV-100351;2025-01-13;Dress;Shopee;Surabaya;4;Rp 1.000.000;0.0;1000000.0;gift wrap
+INV-100352;22/03/2025;Dress;Shopee;Jakarta;4;Rp 1.000.000;100000.0;900000.0;warna sesuai foto
+INV-100353;28/04/2025;Bag;Shopee;Medan;3;Rp 1.050.000;105000.0;945000.0;
+INV-100354;2025-09-19;Dress;Website;Jakarta;2;Rp 500.000;100000.0;400000.0;gift wrap
+INV-100355;25/09/2025;Dress;TikTok Shop;Makassar;2;Rp 500.000;100000.0;400000.0;gift wrap
+INV-100356;10/02/2025;T-Shirt;TikTok Shop;Medan;3;Rp 360.000;72000.0;288000.0;
+INV-100357;2025-08-29;T-Shirt;Tokopedia;Makassar;2;Rp 240.000;24000.0;216000.0;kirim cepat ya
+INV-100358;25/01/2025;Hijab;Tokopedia;Medan;4;Rp 480.000;24000.0;456000.0;
+INV-100359;22/07/2025;T-Shirt;Tokopedia;Makassar;2;Rp 240.000;12000.0;228000.0;gift wrap
+INV-100360;2025-08-17;shoes  ;Tokopedia;Jakarta;4;Rp 1.000.000;0.0;1000000.0;
+INV-100361;29/08/2025;Dress;Tokopedia;Makassar;4;Rp 1.000.000;50000.0;950000.0;
+INV-100362;02/03/2025;Shoes;Shopee;Jakarta;5;Rp 2.000.000;100000.0;1900000.0;gift wrap
+INV-100363;2025-08-30;Hijab;Shopee;Surabaya;1;Rp 120.000;0.0;120000.0;
+INV-100364;01/02/2025;Hijab;Website;Jakarta;4;Rp 480.000;0.0;480000.0;
+INV-100365;21/05/2025;Hijab;Tokopedia;Bandung;1;Rp 120.000;12000.0;108000.0;kirim cepat ya
+INV-100366;2025-05-07;Shoes;Website;Medan;2;Rp 800.000;;760000.0;gift wrap
+INV-100367;27/03/2025;Dress;Shopee;Surabaya;1;Rp 250.000;50000.0;200000.0;
+INV-100368;06/01/2025;T-Shirt;Tokopedia;Makassar;1;Rp 120.000;6000.0;114000.0;
+INV-100369;2025-07-28;T-Shirt;Shopee;Medan;1;Rp 120.000;24000.0;96000.0;kirim cepat ya
+INV-100370;01/04/2025;T-Shirt;Shopee;Medan;1;Rp 120.000;12000.0;108000.0;
+INV-100371;28/06/2025;Shoes;Shopee;Makassar;5;Rp 2.000.000;0.0;2000000.0;warna sesuai foto
+INV-100372;2025-04-21;T-Shirt;Shopee;Bandung;1;Rp 120.000;0.0;120000.0;
+INV-100373;11/04/2025;Shoes;Website;Surabaya;2;Rp 800.000;80000.0;720000.0;kirim cepat ya
+INV-100374;28/08/2025;Shoes;Shopee;Makassar;4;Rp 1.600.000;160000.0;1440000.0;warna sesuai foto
+INV-100375;2025-01-26;T-Shirt;Tokopedia;Bandung;5;Rp 600.000;30000.0;570000.0;
+INV-100376;18/07/2025;Bag;Tokopedia;Medan;5;Rp 1.750.000;175000.0;1575000.0;
+INV-100377;21/07/2025;Hijab;Tokopedia;Surabaya;1;Rp 120.000;24000.0;96000.0;warna sesuai foto
+INV-100378;2025-04-13;Shoes;Tokopedia;;5;Rp 2.000.000;100000.0;1900000.0;warna sesuai foto
+INV-100379;12/03/2025;T-Shirt;Shopee;Jakarta;4;Rp 480.000;0.0;480000.0;
+INV-100380;02/01/2025;T-Shirt;Website;Surabaya;1;Rp 120.000;6000.0;114000.0;warna sesuai foto
+INV-100381;2025-09-10;T-Shirt;TikTok Shop;Jakarta;3;Rp 360.000;72000.0;288000.0;
+INV-100382;13/09/2025;Dress;TikTok Shop;Medan;5;Rp 1.250.000;250000.0;1000000.0;kirim cepat ya
+INV-100383;07/03/2025;T-Shirt;Tokopedia;Jakarta;2;Rp 240.000;48000.0;192000.0;kirim cepat ya
+INV-100384;2025-01-09;Bag;Shopee;Medan;1;Rp 350.000;70000.0;280000.0;
+INV-100385;03/02/2025;Hijab;Website;Makassar;5;Rp 600.000;0.0;600000.0;kirim cepat ya
+INV-100386;19/01/2025;Dress;Shopee;Medan;5;Rp 1.250.000;62000.0;1188000.0;gift wrap
+INV-100387;2025-08-13;T-Shirt;Shopee;Bandung;5;Rp 600.000;0.0;600000.0;
+INV-100388;29/08/2025;Dress;Shopee;Jakarta;5;Rp 1.250.000;0.0;1250000.0;
+INV-100389;11/02/2025;Dress;TikTok Shop;Makassar;5;Rp 1.250.000;250000.0;1000000.0;warna sesuai foto
+INV-100390;2025-07-21;Bag;Tokopedia;Jakarta;3;Rp 1.050.000;210000.0;840000.0;
+INV-100391;18/02/2025;T-Shirt;TikTok Shop;Medan;1;Rp 120.000;0.0;120000.0;kirim cepat ya
+INV-100392;10/04/2025;T-Shirt;TikTok Shop;Medan;4;Rp 480.000;48000.0;432000.0;warna sesuai foto
+INV-100393;2025-06-11;Hijab;Shopee;Jakarta;2;Rp 240.000;24000.0;216000.0;gift wrap
+INV-100394;14/07/2025;Dress;Website;Medan;3;Rp 750.000;0.0;750000.0;kirim cepat ya
+INV-100395;25/08/2025;T-Shirt;Tokopedia;Jakarta;4;Rp 480.000;96000.0;384000.0;kirim cepat ya
+INV-100396;2025-01-13;Hijab;Tokopedia;Surabaya;5;Rp 600.000;120000.0;480000.0;kirim cepat ya
+INV-100397;23/02/2025;t-shirt  ;Shopee;Makassar;2;Rp 240.000;24000.0;216000.0;gift wrap
+INV-100398;17/03/2025;Bag;Website;Makassar;2;Rp 700.000;70000.0;630000.0;kirim cepat ya
+INV-100399;2025-03-25;Hijab;Shopee;Surabaya;4;Rp 480.000;24000.0;456000.0;
+INV-100010;23/05/2025;Hijab;Tokopedia;Bandung;3;Rp 360.000;36000.0;324000.0;warna sesuai foto
+INV-100011;21/09/2025;Hijab;TikTok Shop;Surabaya;2;Rp 240.000;0.0;240000.0;kirim cepat ya
+INV-100012;2025-07-18;Dress;Website;Jakarta;1;Rp 250.000;50000.0;200000.0;kirim cepat ya

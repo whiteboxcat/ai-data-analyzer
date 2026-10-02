@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% block title %}{{ r.file }} · AI Data Analyzer{% endblock %}
+
+{% block content %}
+{% set ins = r.insights %}
+{% set t = r.trends %}
+{% set review_count = r.issues|rejectattr('auto_fix')|list|length %}
+
+<header class="report-head">
+  <div>
+    <h1>{{ r.file }}</h1>
+    <dl class="facts">
+      <div><dt>Sheets</dt><dd class="num">{{ r.sheets|length }}</dd></div>
+      <div><dt>Data issues</dt><dd class="num">{{ r.issues|length }}{% if review_count %} ({{ review_count }} to review){% endif %}</dd></div>
+      {% if r.industry and r.industry.name %}<div><dt>Industry</dt><dd>{{ r.industry.name }}</dd></div>{% endif %}
+      {% if r.source and r.source.type == 'google' %}<div><dt>Source</dt><dd><a href="{{ r.source.link }}" target="_blank" rel="noopener">Google {{ 'Sheets' if 'spreadsheets' in r.source.link else 'Drive' }}</a></dd></div>{% endif %}
+      <div><dt>Analysed with</dt><dd>{{ provider_label or 'No AI' }}</dd></div>
+    </dl>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="{{ url_for('download', job=job) }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4"/><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>
+      {% if (r.cleaned_file or '').endswith('.zip') %}Download cleaned data (CSV){% else %}Download cleaned Excel{% endif %}</a>
+    <a class="btn" href="{{ url_for('index') }}">New analysis</a>
+  </div>
+</header>
+
+{% if r.plan_error or ins.error %}
+<p class="alert warn" style="margin-bottom:20px">The AI request failed, so this report uses basic analysis. {{ r.plan_error or ins.error }}</p>
+{% endif %}
+
+<div class="workbook">
+<nav class="tabs" role="tablist" aria-label="Report sections">
+  <button class="tab" role="tab" data-tab="summary" aria-controls="summary">Summary</button>
+  <button class="tab" role="tab" data-tab="quality" aria-controls="quality">Data cleaning <span class="count">{{ r.issues|length }}</span></button>
+  <span class="tab-gap" aria-hidden="true"></span>
+  {% for s in r.sheets %}
+  <button class="tab sheet-tab" role="tab" data-tab="sheet-{{ loop.index }}" aria-controls="sheet-{{ loop.index }}">{{ s.sheet }} <span class="count">{{ s.rows|num }}</span></button>
+  {% endfor %}
+  <span class="tab-gap" aria-hidden="true"></span>
+  <button class="tab" role="tab" data-tab="trends" aria-controls="trends">Industry trends</button>
+</nav>
+
+{# ------------------------------------------------------------------ SUMMARY #}
+<section class="panel" id="summary" role="tabpanel">
+  <div>
+    {% if ins.executive_summary or r.workbook_summary %}
+      <p class="lead">{{ ins.executive_summary or r.workbook_summary }}</p>
+      {% if ins.executive_summary and r.workbook_summary %}<p class="about">About this data: {{ r.workbook_summary }}</p>{% endif %}
+    {% else %}
+      <p class="lead quiet">Add an AI key to get a written summary. The charts and computed notes below still apply.</p>
+    {% endif %}
+  </div>
+
+  <div class="split">
+    <div>
+      <div class="section-head"><h2>Key insights</h2></div>
+      <ul class="entries">
+        {% for i in ins.insights or [] %}
+        <li><b>{{ i.title }}</b>{% if i.sheet and r.sheets|length > 1 %}<span class="tag">{{ i.sheet }}</span>{% endif %}
+          <p>{{ i.detail }}</p></li>
+        {% else %}<li class="empty">No insights for this file.</li>{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <div class="section-head"><h2>Recommendations</h2></div>
+      <ul class="entries">
+        {% for rec in ins.recommendations or [] %}
+        <li><span class="priority {{ rec.priority }}">{{ (rec.priority or 'medium')|capitalize }} priority</span><br>
+          <b>{{ rec.title }}</b><p>{{ rec.detail }}</p>
+          {% if rec.based_on %}<p class="meta">Based on {{ rec.based_on }}</p>{% endif %}</li>
+        {% else %}<li class="empty">Recommendations need an AI model. Choose one on the upload page.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {% if ins.data_caveats or ins.next_questions %}
+  <div class="split">
+    {% if ins.data_caveats %}<div><div class="section-head"><h2>Keep in mind</h2></div>
+      <ul class="entries">{% for c in ins.data_caveats %}<li><p style="margin:0">{{ c }}</p></li>{% endfor %}</ul></div>{% endif %}
+    {% if ins.next_questions %}<div><div class="section-head"><h2>Questions to explore next</h2></div>
+      <ul class="entries">{% for q in ins.next_questions %}<li><p style="margin:0">{{ q }}</p></li>{% endfor %}</ul></div>{% endif %}
+  </div>
+  {% endif %}
+
+  <div>
+    <div class="section-head"><h2>Sheets in this file</h2></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Sheet</th><th class="num">Rows</th><th class="num">Columns</th><th class="num">Charts</th><th class="num">Issues</th><th>Contents</th></tr></thead>
+      <tbody>
+      {% for s in r.sheets %}
+      <tr><td><a href="#sheet-{{ loop.index }}" data-goto="sheet-{{ loop.index }}">{{ s.sheet }}</a></td><td class="num">{{ s.rows|num }}</td>
+        <td class="num">{{ s.columns_count }}</td><td class="num">{{ s.charts|length }}</td><td class="num">{{ s.issues|length }}</td>
+        <td class="quiet">{{ s.description or '' }}</td></tr>
+      {% endfor %}
+      {% for e in r.empty_sheets %}<tr><td>{{ e }}</td><td colspan="5" class="quiet">Empty, skipped</td></tr>{% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ QUALITY #}
+<section class="panel" id="quality" role="tabpanel" hidden>
+  <div>
+    <h2 style="margin-bottom:8px">Data cleaning</h2>
+    <p class="quiet" style="max-width:75ch">{% if r.auto_clean %}Safe fixes were applied before charting. The rest are judgement calls, so they're left for you to check.{% else %}Automatic fixes were off for this run, so nothing was changed.{% endif %}
+      The cleaned download includes a list of every change.</p>
+    <div class="legend-line" style="margin-top:12px">
+      <span><span class="status fixed">Fixed</span> corrected automatically</span>
+      <span><span class="status review">Review</span> needs your decision</span>
+    </div>
+  </div>
+
+  <div>
+  {% for s in r.sheets %}
+  <div class="issue-group">
+    <h3>{{ s.sheet }} <span>{{ s.issues|length }} issue{{ 's' if s.issues|length != 1 }}</span></h3>
+    {% if s.issues %}
+    <ul class="issues">
+      {% for i in s.issues %}
+      <li class="issue {{ i.severity }}"><div class="issue-body">
+        <div class="issue-top">
+          <b>{{ i.title }}</b>
+          <span><span class="sev-text">{{ i.severity|capitalize }} impact</span>
+          {% if i.auto_fix and r.auto_clean %}<span class="status fixed">Fixed</span>
+          {% elif i.auto_fix %}<span class="status info">Fixable</span>
+          {% else %}<span class="status review">Review</span>{% endif %}</span>
+        </div>
+        <p>{{ i.detail }}</p>
+        <p class="rec">{{ i.recommendation }}</p>
+      </div></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="all-clear">No issues found in this sheet.</p>{% endif %}
+    {% if s.clean_log %}
+    <details class="changes"><summary>Show the {{ s.clean_log|length }} change{{ 's' if s.clean_log|length != 1 }} made</summary>
+      <ul>{% for l in s.clean_log %}<li>{{ l }}</li>{% endfor %}</ul></details>
+    {% endif %}
+  </div>
+  {% endfor %}
+  </div>
+</section>
+
+{# ------------------------------------------------------------------ SHEETS #}
+{% for s in r.sheets %}
+<section class="panel" id="sheet-{{ loop.index }}" role="tabpanel" hidden>
+  <div>
+    <h2>{{ s.sheet }}</h2>
+    {% if s.description %}<p class="sheet-desc" style="margin-top:6px">{{ s.description }}</p>{% endif %}
+  </div>
+
+  <div class="kpis">
+    {% for k in s.kpis %}
+    <div class="kpi"><div class="label">{{ k.label }}</div>
+      {% if k.format == 'text' %}<div class="value text">{{ k.value }}</div>{% else %}<div class="value" title="{{ k.value|num }}">{{ k.value|compact }}</div>{% endif %}
+      {% if k.sub %}<div class="sub">{{ k.sub }}</div>{% endif %}</div>
+    {% endfor %}
+  </div>
+
+  {% if s.used_fallback and r.provider %}<p class="alert warn">The AI didn't plan charts for this sheet, so standard charts are shown.</p>{% endif %}
+
+  {% if s.charts %}
+  <div class="charts">
+    {% for c in s.charts %}
+    <article class="chart-card">
+      <h3>{{ c.title }}</h3>
+      {% if c.reason %}<p class="why">{{ c.reason }}</p>{% else %}<div style="height:12px"></div>{% endif %}
+      <div class="chart" data-figure='{{ c.figure|tojson }}' role="img" aria-label="{{ c.title }}"></div>
+      {% if c.insight %}<p class="takeaway">{{ c.insight }}</p>{% endif %}
+      <details><summary>Show the numbers</summary>
+        <div class="table-wrap"><table>
+          {% if c.table %}<thead><tr>{% for k in c.table[0].keys() %}<th>{{ k|replace('_', ' ')|capitalize }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for row in c.table %}<tr>{% for v in row.values() %}<td {% if v is number %}class="num"{% endif %}>{{ v|num if v is number else v }}</td>{% endfor %}</tr>{% endfor %}</tbody>{% endif %}
+        </table></div>
+      </details>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}<p class="empty">This sheet has no numeric or category columns to chart.</p>{% endif %}
+
+  <div>
+    <div class="section-head"><h2>Columns</h2><p>How each column was read</p></div>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Column</th><th>Type</th><th class="num">Missing</th><th class="num">Distinct</th><th>Values</th></tr></thead>
+      <tbody>
+      {% for c in s.profile.columns %}
+      <tr><td><b style="font-weight:600">{{ c.name }}</b></td><td><span class="role {{ c.role }}">{{ 'ID' if c.role == 'id' else c.role|capitalize }}</span></td>
+        <td class="num">{% if c.missing %}{{ c.missing|num }} <span class="quiet">({{ c.missing_pct }}%)</span>{% else %}<span class="quiet">0</span>{% endif %}</td>
+        <td class="num">{{ c.unique|num }}</td>
+        <td class="quiet small">
+          {% set st = c.stats %}
+          {% if c.role == 'metric' and st %}{{ st.min|num }} to {{ st.max|num }}, median {{ st.median|num }}
+          {% elif c.role == 'date' and st %}{{ st.min[:10] }} to {{ st.max[:10] }} ({{ st.span_days }} days)
+          {% elif st.top_values %}{% for k, v in st.top_values.items() %}{% if loop.index <= 4 %}{{ k }} ({{ v }}){{ ', ' if not loop.last and loop.index < 4 }}{% endif %}{% endfor %}
+          {% elif st.example_values %}For example {{ st.example_values|join(', ') }}{% endif %}
+          {% if c.note %}<br>{{ c.note|capitalize }}{% endif %}
+        </td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </div>
+
+  <details>
+    <summary>Preview the first {{ s.preview.data|length }} rows after cleaning</summary>
+    <div class="table-wrap" style="margin-top:10px"><table>
+      <thead><tr>{% for col in s.preview.columns %}<th>{{ col }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in s.preview.data %}<tr>{% for v in row %}<td {% if v is number %}class="num"{% endif %}>{{ (v|num if v is number else (v or ''))|string|truncate(40) }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table></div>
+  </details>
+</section>
+{% endfor %}
+
+{# ------------------------------------------------------------------ TRENDS #}
+<section class="panel" id="trends" role="tabpanel" hidden>
+  {% if r.industry and r.industry.name %}
+  <div class="industry-head">
+    <h2>{{ r.industry.name }}{% if r.industry.market %} in {{ r.industry.market }}{% endif %}</h2>
+    {% if r.industry.evidence %}<p class="detected">Detected from {{ r.industry.evidence }}</p>{% endif %}
+    {% if t.summary and t.summary.industry_overview %}<p class="lead">{{ t.summary.industry_overview|cite(t.articles) }}</p>{% endif %}
+    {% if r.industry.likely_competitors %}
+    <div class="competitors" aria-label="Competitors tracked">{% for c in r.industry.likely_competitors %}<span>{{ c }}</span>{% endfor %}</div>
+    {% endif %}
+  </div>
+  {% else %}
+  <h2>Industry trends</h2>
+  {% endif %}
+
+  {% if t.status == 'disabled' %}
+    <p class="empty">News was turned off for this run. Start a new analysis with "Include industry and competitor news" ticked.</p>
+  {% elif t.status in ('no_industry', 'no_news') %}
+    <p class="alert warn">{{ t.message }}</p>
+  {% endif %}
+
+  {% if t.summary %}
+  <div class="split">
+    <div>
+      <div class="section-head"><h2>Latest trends</h2></div>
+      <ul class="entries">
+        {% for tr in t.summary.trends or [] %}<li><b>{{ tr.title }}</b>{{ tr.refs|refs(t.articles) }}<p>{{ tr.detail|cite(t.articles) }}</p></li>
+        {% else %}<li class="empty">No clear trends in the recent headlines.</li>{% endfor %}
+      </ul>
+    </div>
+    <div>
+      <div class="section-head"><h2>Competitor moves</h2></div>
+      <ul class="entries">
+        {% for m in t.summary.competitor_moves or [] %}<li><b>{{ m.competitor }}</b>{{ m.refs|refs(t.articles) }}<p>{{ m.move|cite(t.articles) }}</p></li>
+        {% else %}<li class="empty">No competitor news in the recent headlines.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {% if t.summary.implications %}
+  <div>
+    <div class="section-head"><h2>What this means for you</h2></div>
+    <ul class="entries">
+      {% for m in t.summary.implications %}<li><b>{{ m.title }}</b><p>{{ m.detail|cite(t.articles) }}</p></li>{% endfor %}
+    </ul>
+    {% if t.summary.watchlist %}<p class="watch"><b style="color:var(--ink);font-weight:600">Worth watching:</b> {{ t.summary.watchlist|join('; ') }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {% elif t.summary_error %}<p class="alert warn">Headlines were found, but the AI summary failed. {{ t.summary_error }}</p>
+  {% endif %}
+
+  {% if t.articles %}
+  <div>
+    <div class="section-head"><h2>Sources</h2><p>{{ t.articles|length }} recent headlines</p></div>
+    <ol class="sources">{% for a in t.articles %}
+      <li id="ref-{{ a.ref }}"><a href="{{ a.url }}" target="_blank" rel="noopener">{{ a.title }}</a>
+        <span class="meta">{{ a.source }}{% if a.published %}, {{ a.published }}{% endif %}. Found by searching {{ a.query }}</span></li>{% endfor %}
+    </ol>
+  </div>
+  {% endif %}
+</section>
+</div>
+
+{% if r.rejected_charts %}
+<details class="footnote"><summary>{{ r.rejected_charts|length }} suggested chart{{ 's were' if r.rejected_charts|length != 1 else ' was' }} skipped because the data didn't fit</summary>
+  <ul>{% for x in r.rejected_charts %}<li>{{ x.sheet }}: {{ x.spec.title or x.spec.type }} ({{ x.reason }})</li>{% endfor %}</ul>
+</details>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='charts.js') }}"></script>
+<script>
+  const tabs = [...document.querySelectorAll(".tab")];
+  function show(id, focus) {
+    tabs.forEach(t => {
+      const on = t.dataset.tab === id;
+      t.setAttribute("aria-selected", on);
+      t.tabIndex = on ? 0 : -1;
+      if (on) { t.scrollIntoView({ block: "nearest", inline: "nearest" }); if (focus) t.focus(); }
+    });
+    document.querySelectorAll(".panel").forEach(p => p.hidden = p.id !== id);
+    history.replaceState(null, "", "#" + id);
+    Viz.renderAll();
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", () => show(t.dataset.tab));
+    t.addEventListener("keydown", e => {   // arrow keys move between tabs
+      const d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+      if (d) { e.preventDefault(); show(tabs[(i + d + tabs.length) % tabs.length].dataset.tab, true); }
+    });
+  });
+  document.querySelectorAll("[data-goto]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); show(a.dataset.goto); window.scrollTo({ top: 0 }); }));
+  const start = location.hash.slice(1);
+  show(document.getElementById(start) ? start : "summary");
+</script>
+{% endblock %}

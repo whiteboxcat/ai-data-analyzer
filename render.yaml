@@ -1,0 +1,29 @@
+# Render Blueprint: New > Blueprint > pick this repo. Render reads this file.
+services:
+  - type: web
+    name: ai-data-analyzer
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # 1 worker fits the free 512 MB; threads let a page load while an analysis runs.
+    # AI + news calls can take a couple of minutes, so the timeout is generous.
+    startCommand: gunicorn app:app --workers 1 --threads 4 --timeout 300 --bind 0.0.0.0:$PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: FLASK_SECRET_KEY
+        generateValue: true        # Render creates a random secret
+      # sync: false = Render asks you for these values in the dashboard.
+      # They are stored by Render, never in GitHub.
+      - key: APP_PASSWORD
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      # Optional: private Google Sheets / Drive access (see README)
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}AI Data Analyzer{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='1' y='1' width='22' height='22' rx='4' fill='%23127a5a'/%3E%3Crect x='6' y='13' width='3' height='5' fill='white'/%3E%3Crect x='10.5' y='9' width='3' height='9' fill='white'/%3E%3Crect x='15' y='6' width='3' height='12' fill='white'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <svg class="mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="1" width="22" height="22" rx="4" fill="var(--accent)"/><rect x="6" y="13" width="3" height="5" fill="var(--accent-ink)"/><rect x="10.5" y="9" width="3" height="9" fill="var(--accent-ink)"/><rect x="15" y="6" width="3" height="12" fill="var(--accent-ink)"/></svg>
+      AI Data Analyzer
+    </a>
+    <span class="spacer"></span>
+    {% block topbar %}{% endblock %}
+    {% if auth_enabled and session.get('auth') %}
+    <form method="post" action="{{ url_for('logout') }}"><button class="link-btn" type="submit">Sign out</button></form>
+    {% endif %}
+  </header>
+  {% block body %}
+  <main>
+    {% with msgs = get_flashed_messages() %}{% if msgs %}
+      <div class="flashes" role="alert">{% for m in msgs %}<p class="alert error">{{ m }}</p>{% endfor %}</div>
+    {% endif %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  {% endblock %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

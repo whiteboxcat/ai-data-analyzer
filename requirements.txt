@@ -1,0 +1,14 @@
+flask>=3.0
+pandas>=2.2
+numpy>=1.26
+openpyxl>=3.1
+python-dotenv>=1.0
+requests>=2.31
+gunicorn>=22.0
+google-auth>=2.30       # private Google Sheets / Drive access
+python-calamine>=0.2    # faster, lighter .xlsx reading (optional)
+
+# AI providers — install the ones you use (all three is fine)
+openai>=1.40
+anthropic>=0.40
+google-genai>=1.0

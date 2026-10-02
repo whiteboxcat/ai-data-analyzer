@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Sign in · AI Data Analyzer{% endblock %}
+{% block body %}
+<main class="login">
+  <form class="login-sheet" method="post">
+    <div>
+      <h1>Sign in</h1>
+      <p style="margin-top:6px">This analyzer is private. Enter the password set in your Render settings.</p>
+    </div>
+    {% if error %}<p class="alert error" role="alert">{{ error }}</p>{% endif %}
+    <label class="field">Password
+      <input type="password" name="password" autocomplete="current-password" required autofocus>
+    </label>
+    <button class="btn wide" type="submit">Sign in</button>
+  </form>
+</main>
+{% endblock %}
