@@ -188,7 +188,8 @@ def refs(nums, articles):
 def index():
     return render_template("index.html", providers=available_providers(), max_mb=MAX_MB,
                            robot_email=sources.service_account_email(),
-                           link_mb=int(os.getenv("MAX_LINK_MB", "200")))
+                           link_mb=int(os.getenv("MAX_LINK_MB", "200")),
+                           data_budget=pipeline.data_budget_mb())
 
 
 @app.post("/analyze")
