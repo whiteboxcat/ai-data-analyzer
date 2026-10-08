@@ -53,32 +53,60 @@ def _looks_dayfirst(values: pd.Series) -> bool:
     return bool(len(first) and (first > 12).any())
 
 
-def parse_dates(s: pd.Series) -> pd.Series:
-    """Parse a column into datetimes. Handles strings, Excel dates and YYYYMMDD ints."""
+# Dates outside this window are treated as typos (e.g. 1000-02-24 for 2000-02-24).
+# pandas' default nanosecond dates can't even hold years before 1677, which is
+# what used to crash the analysis.
+DATE_MIN = pd.Timestamp("1900-01-01")
+DATE_MAX = pd.Timestamp("2100-12-31")
+
+
+def _naive(d: pd.Series) -> pd.Series:
+    if isinstance(d.dtype, pd.DatetimeTZDtype):
+        return d.dt.tz_localize(None)
+    return d
+
+
+def _parse_dates_raw(s: pd.Series) -> pd.Series:
+    """Parse without range checks, at microsecond resolution (years 1 to 9999 fit)."""
     if pd.api.types.is_datetime64_any_dtype(s):
-        return s
+        return _naive(s)
 
     if pd.api.types.is_numeric_dtype(s):
         # Only treat integers shaped like 20240131 as dates.
         nn = s.dropna()
         if len(nn) and ((nn % 1) == 0).all() and nn.between(19000101, 21001231).all():
             return pd.to_datetime(s.astype("Int64").astype(str), format="%Y%m%d", errors="coerce")
-        return pd.Series(pd.NaT, index=s.index)
+        return pd.Series(pd.NaT, index=s.index, dtype="datetime64[us]")
 
     text = s.astype(str).str.strip().where(s.notna())
     # ISO dates (2025-03-12) are always year-month-day; parse them separately so a
     # dayfirst=True guess for "12/03/2025" values never flips them.
     iso = text.str.match(r"^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}", na=False)
-    out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[ns]")
+    out = pd.Series(pd.NaT, index=s.index, dtype="datetime64[us]")
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if iso.any():
-            out[iso] = pd.to_datetime(text[iso], errors="coerce", format="mixed", dayfirst=False)
-        rest = ~iso & text.notna()
-        if rest.any():
-            out[rest] = pd.to_datetime(text[rest], errors="coerce", format="mixed",
-                                       dayfirst=_looks_dayfirst(text[rest]))
+        for mask, dayfirst in ((iso, False), (~iso & text.notna(), None)):
+            if not mask.any():
+                continue
+            if dayfirst is None:
+                dayfirst = _looks_dayfirst(text[mask])
+            part = pd.to_datetime(text[mask], errors="coerce", format="mixed", dayfirst=dayfirst)
+            out[mask] = _naive(part).astype("datetime64[us]")
     return out
+
+
+def parse_dates(s: pd.Series) -> pd.Series:
+    """Parse a column into datetimes. Handles strings, Excel dates and YYYYMMDD ints.
+    Dates outside DATE_MIN..DATE_MAX become NaT (see implausible_dates)."""
+    raw = _parse_dates_raw(s)
+    ok = (raw >= DATE_MIN) & (raw <= DATE_MAX)
+    return raw.where(ok).astype("datetime64[ns]")
+
+
+def implausible_dates(s: pd.Series) -> pd.Series:
+    """True where a value is a date, but outside the realistic range (likely a typo)."""
+    raw = _parse_dates_raw(s)
+    return raw.notna() & ((raw < DATE_MIN) | (raw > DATE_MAX))
 
 
 def date_parse_rate(s: pd.Series) -> float:

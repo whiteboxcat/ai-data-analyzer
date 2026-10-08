@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import gc
+import logging
 import os
 import time
 import zipfile
@@ -20,6 +21,8 @@ from .loader import frames_to_sheets, load_file, memory_mb
 from .profiler import profile_sheet
 from .utils import to_jsonable
 
+
+log = logging.getLogger(__name__)
 
 EXCEL_MAX_ROWS = 1_048_000          # Excel's sheet limit (minus a little headroom)
 EXCEL_MAX_CELLS = 1_000_000         # beyond this, writing .xlsx is slow (~10s per million cells)
@@ -56,22 +59,30 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
                          "split it by period, or move to a larger Render plan and raise MAX_DATA_MB.")
     sheet_names = list(sheets)
 
-    # 1. profile + quality checks on the RAW data
-    raw_profiles = {n: profile_sheet(df, n) for n, df in sheets.items()}
-    all_issues, clean_logs, cleaned = [], {}, {}
+    # 1. profile + quality checks on the RAW data, then clean.
+    # A sheet that fails is reported and skipped; it never stops the other sheets.
+    all_issues, clean_logs, cleaned, profiles, failed = [], {}, {}, [], {}
     for sname in sheet_names:
         df = sheets.pop(sname)               # drop the raw copy as soon as it's cleaned
-        iss = cleaner.detect_issues(df, raw_profiles[sname])
-        all_issues += iss
-        if auto_clean:
-            cleaned[sname], clean_logs[sname] = cleaner.apply_fixes(df, raw_profiles[sname], iss)
-        else:
-            cleaned[sname], clean_logs[sname] = df, []
+        try:
+            raw_profile = profile_sheet(df, sname)
+            iss = cleaner.detect_issues(df, raw_profile)
+            if auto_clean:
+                clean_df, log_lines = cleaner.apply_fixes(df, raw_profile, iss)
+            else:
+                clean_df, log_lines = df, []
+            # 2. re-profile the cleaned data (types are now correct)
+            profiles.append(profile_sheet(clean_df, sname))
+            cleaned[sname], clean_logs[sname] = clean_df, log_lines
+            all_issues += iss
+        except Exception as e:  # noqa: BLE001 - report any sheet-level failure
+            log.exception("sheet %s failed", sname)
+            failed[sname] = f"{e.__class__.__name__}: {e}"
         del df
         gc.collect()
-
-    # 2. re-profile the cleaned data (types are now correct)
-    profiles = [profile_sheet(df, n) for n, df in cleaned.items()]
+    if not cleaned:
+        first = next(iter(failed.values()), "no data")
+        raise ValueError(f"No sheet could be analysed. {first}")
     timings["profile_clean"] = round(time.time() - t0, 2)
 
     # 3. AI plan
@@ -122,13 +133,13 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
     cleaned_file = save_cleaned(cleaned, all_issues, clean_logs, cleaned_out) if cleaned_out else None
 
     # skipped sheets (blank)
-    empty = [n for n in sheet_names if n not in {s["sheet"] for s in sheet_results}]
+    empty = [n for n in sheet_names if n not in {s["sheet"] for s in sheet_results} and n not in failed]
     return to_jsonable({
         "file": name or (Path(path).name if path else "Data"), "provider": provider, "auto_clean": auto_clean,
         "cleaned_file": cleaned_file, "data_mb": round(size, 1),
         "workbook_summary": plan.get("workbook_summary"), "industry": plan.get("industry"),
         "plan_source": plan["source"], "plan_error": plan.get("error"), "rejected_charts": plan["rejected"],
-        "sheets": sheet_results, "empty_sheets": empty, "issues": all_issues,
+        "sheets": sheet_results, "empty_sheets": empty, "failed_sheets": failed, "issues": all_issues,
         "insights": ins, "trends": trends, "timings": timings,
     })
 
