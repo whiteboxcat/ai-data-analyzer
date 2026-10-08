@@ -6,7 +6,7 @@
 Keys and models come from .env:
     OPENAI_API_KEY      OPENAI_MODEL     (default gpt-5-mini)
     ANTHROPIC_API_KEY   ANTHROPIC_MODEL  (default claude-sonnet-5-5)
-    GEMINI_API_KEY      GEMINI_MODEL     (default gemini-2.5-flash)
+    GEMINI_API_KEY      GEMINI_MODEL     (default gemini-3.8-flash)
 
 Reasoning models (gpt-5, gemini-2.5) spend part of max_tokens on thinking,
 so limits are generous. SDKs are imported lazily, so you only need to `pip install` the ones you use.
@@ -23,7 +23,7 @@ PROVIDERS = {
     "claude": {"label": "Claude (Anthropic)", "key": "ANTHROPIC_API_KEY",
                "model_env": "ANTHROPIC_MODEL", "default_model": "claude-sonnet-5-5"},
     "gemini": {"label": "Gemini (Google)", "key": "GEMINI_API_KEY",
-               "model_env": "GEMINI_MODEL", "default_model": "gemini-2.5-flash"},
+               "model_env": "GEMINI_MODEL", "default_model": "gemini-3.8-flash"},
 }
 
 
