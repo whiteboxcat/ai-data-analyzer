@@ -94,6 +94,7 @@
         <td class="quiet">{{ s.description or '' }}</td></tr>
       {% endfor %}
       {% for e in r.empty_sheets %}<tr><td>{{ e }}</td><td colspan="5" class="quiet">Empty, skipped</td></tr>{% endfor %}
+      {% for name, err in (r.failed_sheets or {}).items() %}<tr><td>{{ name }}</td><td colspan="5"><span class="status review">Skipped</span> <span class="quiet">This sheet couldn't be analysed: {{ err }}</span></td></tr>{% endfor %}
       </tbody>
     </table></div>
   </div>

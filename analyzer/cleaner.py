@@ -15,7 +15,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from .utils import is_texty, parse_dates, parse_numeric_text
+from .utils import implausible_dates, is_texty, parse_dates, parse_numeric_text
 
 SEVERITY_ORDER = {"high": 0, "medium": 1, "low": 2}
 NON_NEGATIVE_HINTS = re.compile(r"(qty|quantity|jumlah|price|harga|stock|stok|count|orders|visitors)", re.I)
@@ -103,9 +103,22 @@ def detect_issues(df: pd.DataFrame, profile: dict) -> list[dict]:
                                  + (f" {bad} values could not be read and will become blank." if bad else ""),
                                  "Convert to numeric (currency symbols and thousand separators removed).",
                                  int(s.notna().sum()), True))
+        if role == "date":
+            odd = implausible_dates(s)
+            n_odd = int(odd.sum())
+            if n_odd:
+                examples = ", ".join(dict.fromkeys(s[odd].astype(str).str[:10]))
+                examples = examples if len(examples) < 60 else examples[:60] + "…"
+                issues.append(_issue(sheet, name, "implausible_dates", "high",
+                                     (f"1 date in '{name}' looks like a typo" if n_odd == 1
+                                      else f"{n_odd} dates in '{name}' look like typos"),
+                                     f"{examples} {'is' if n_odd == 1 else 'are'} before 1900 or after 2100, "
+                                     "probably a mistyped year (e.g. 1000 instead of 2000). These rows are left "
+                                     "out of timelines and the date range.",
+                                     "Correct the year in your source file, then analyse it again.", n_odd))
         if role == "date" and col.get("stored_as"):
             parsed = parse_dates(s)
-            bad = int((s.notna() & parsed.isna()).sum())
+            bad = int((s.notna() & parsed.isna() & ~implausible_dates(s)).sum())
             fmt_note = ""
             if col["stored_as"] == "text":
                 pats = s.dropna().astype(str).str.replace(r"\d", "9", regex=True).value_counts()
