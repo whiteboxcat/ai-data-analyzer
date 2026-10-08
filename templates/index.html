@@ -21,32 +21,50 @@
     {% endif %}
 
     <div class="source-switch" role="tablist" aria-label="Where is your data?">
-      <button type="button" role="tab" aria-selected="true" data-source="file">Upload a file</button>
-      <button type="button" role="tab" aria-selected="false" data-source="link">Google Sheets or Drive link</button>
+      <button type="button" role="tab" aria-selected="true" aria-controls="pane-file" data-source="file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <span><b>Upload a file</b><small>CSV or Excel, up to {{ max_mb }} MB</small></span>
+      </button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="pane-link" data-source="link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></svg>
+        <span><b>Google Sheets or Drive link</b><small>Up to {{ link_mb }} MB</small></span>
+      </button>
     </div>
 
-    <div data-pane="file">
-    <label class="drop" id="drop">
-      <input type="file" name="file" id="file" accept=".csv,.xlsx,.xlsm,.xls" aria-describedby="file-hint">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-      <strong id="file-label">Choose a file or drop it here</strong>
-      <span id="file-hint">CSV or Excel, up to {{ max_mb }} MB</span>
-    </label>
+    <div data-pane="file" id="pane-file" role="tabpanel" class="pane">
+      <label class="drop" id="drop">
+        <input type="file" name="file" id="file" accept=".csv,.xlsx,.xlsm,.xls" title="Choose a CSV or Excel file"
+               aria-describedby="file-hint" data-max-mb="{{ max_mb }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 15V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <strong id="file-label">Choose a file or drop it here</strong>
+        <span id="file-hint">.csv, .xlsx or .xls</span>
+      </label>
+      <div class="limit-note" id="file-limit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5v.5"/></svg>
+        <p><b>Upload limit: {{ max_mb }} MB per file.</b>
+          Bigger file? Put it in Google Drive and <button type="button" class="text-btn" data-switch="link">use a link instead</button> (up to {{ link_mb }} MB).
+          {% if data_budget %}<br><span class="quiet">The server holds about {{ data_budget|int }} MB of data at once, roughly half a million rows of a typical sales export.</span>{% endif %}</p>
+      </div>
     </div>
 
-    <div data-pane="link" hidden class="link-pane">
+    <div data-pane="link" id="pane-link" role="tabpanel" class="pane link-pane" hidden>
       <label class="field">Link to a Google Sheet, or to an .xlsx / .csv file in Google Drive
         <input type="text" name="link" id="link" inputmode="url" autocomplete="off" spellcheck="false"
                placeholder="https://docs.google.com/spreadsheets/d/…">
       </label>
+      <div class="limit-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8.5v.5"/></svg>
+        <p><b>Link limit: {{ link_mb }} MB per file.</b> Every tab of a Google Sheet is analysed.
+          {% if data_budget %}<br><span class="quiet">The server holds about {{ data_budget|int }} MB of data at once, roughly half a million rows of a typical sales export.</span>{% endif %}</p>
+      </div>
       <div class="share-help">
         {% if robot_email %}
         <p><b>Private files:</b> in Google, click Share and add this address as Viewer. Only this app can then read it.</p>
         <div class="copy-row"><code id="robot">{{ robot_email }}</code>
           <button type="button" class="btn secondary small-btn" id="copy-robot">Copy</button></div>
-        <p class="quiet">Or set General access to "Anyone with the link". Files up to {{ link_mb }} MB.</p>
+        <p class="quiet">Or set General access to "Anyone with the link" (Viewer).</p>
         {% else %}
-        <p>In Google, click Share and set General access to <b>"Anyone with the link"</b> (Viewer). Files up to {{ link_mb }} MB.</p>
+        <p><b>Sharing:</b> in Google, click Share and set General access to <b>"Anyone with the link"</b> (Viewer).</p>
         <p class="quiet">To keep files private instead, set up a Google service account (see the README) and this box will show the address to share with.</p>
         {% endif %}
       </div>
@@ -125,6 +143,7 @@
     if (m === "link") link.focus();
   }
   document.querySelectorAll("[data-source]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.source)));
+  document.querySelectorAll("[data-switch]").forEach(b => b.addEventListener("click", () => setMode(b.dataset.switch)));
   try { if (localStorage.getItem("source-mode") === "link") setMode("link"); } catch (e) {}
   const copyBtn = document.getElementById("copy-robot");
   if (copyBtn) copyBtn.addEventListener("click", async () => {
@@ -133,18 +152,27 @@
     setTimeout(() => copyBtn.textContent = "Copy", 2000);
   });
   const label = document.getElementById("file-label"), hint = document.getElementById("file-hint");
+  const maxMb = Number(file.dataset.maxMb);
+  let tooBig = false;
   file.addEventListener("change", () => {
     const f = file.files[0];
     if (!f) return;
+    const mb = f.size / 1024 / 1024;
+    tooBig = mb > maxMb;
     label.textContent = f.name;
-    hint.textContent = (f.size / 1024 / 1024).toFixed(1) + " MB · click to choose a different file";
-    drop.classList.add("has-file");
+    hint.textContent = tooBig
+      ? `This file is ${mb.toFixed(1)} MB, over the ${maxMb} MB upload limit. Use a Google link instead.`
+      : `${mb.toFixed(1)} MB. Click to choose a different file`;
+    drop.classList.toggle("has-file", !tooBig);
+    drop.classList.toggle("too-big", tooBig);
+    document.getElementById("file-limit").classList.toggle("warn", tooBig);
   });
   ["dragover", "dragenter"].forEach(e => drop.addEventListener(e, () => drop.classList.add("drag")));
   ["dragleave", "drop"].forEach(e => drop.addEventListener(e, () => drop.classList.remove("drag")));
 
   document.getElementById("upload-form").addEventListener("submit", (e) => {
     if (mode === "file" && !file.files.length) { e.preventDefault(); drop.classList.add("drag"); file.click(); return; }
+    if (mode === "file" && tooBig) { e.preventDefault(); document.getElementById("file-limit").scrollIntoView({ block: "center", behavior: "smooth" }); return; }
     if (mode === "link" && !/google\.com\//.test(link.value)) { e.preventDefault(); link.setCustomValidity("Paste a Google Sheets or Google Drive link"); link.reportValidity(); return; }
     document.getElementById("go").disabled = true;
     document.getElementById("loading-file").textContent = mode === "link" ? "Reading from Google" : "Analysing " + (file.files[0]?.name || "file");
