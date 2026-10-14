@@ -16,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import charts as ch
-from . import cleaner, industry, insights, planner
+from . import ai_client, cleaner, industry, insights, planner
 from .loader import frames_to_sheets, load_file, memory_mb
 from .profiler import profile_sheet
 from .utils import to_jsonable
@@ -136,6 +136,7 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
     empty = [n for n in sheet_names if n not in {s["sheet"] for s in sheet_results} and n not in failed]
     return to_jsonable({
         "file": name or (Path(path).name if path else "Data"), "provider": provider, "auto_clean": auto_clean,
+        "ai_model": ai_client.last_model.get(provider) if provider else None,
         "cleaned_file": cleaned_file, "data_mb": round(size, 1),
         "workbook_summary": plan.get("workbook_summary"), "industry": plan.get("industry"),
         "plan_source": plan["source"], "plan_error": plan.get("error"), "rejected_charts": plan["rejected"],

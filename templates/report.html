@@ -14,7 +14,7 @@
       <div><dt>Data issues</dt><dd class="num">{{ r.issues|length }}{% if review_count %} ({{ review_count }} to review){% endif %}</dd></div>
       {% if r.industry and r.industry.name %}<div><dt>Industry</dt><dd>{{ r.industry.name }}</dd></div>{% endif %}
       {% if r.source and r.source.type == 'google' %}<div><dt>Source</dt><dd><a href="{{ r.source.link }}" target="_blank" rel="noopener">Google {{ 'Sheets' if 'spreadsheets' in r.source.link else 'Drive' }}</a></dd></div>{% endif %}
-      <div><dt>Analysed with</dt><dd>{{ provider_label or 'No AI' }}</dd></div>
+      <div><dt>Analysed with</dt><dd>{{ provider_label or 'No AI' }}{% if r.ai_model and not (r.plan_error or r.insights.error) %} <span class="quiet">({{ r.ai_model }})</span>{% endif %}</dd></div>
     </dl>
   </div>
   <div class="actions">

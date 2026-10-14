@@ -47,7 +47,7 @@ RSS = b"""<?xml version="1.0"?><rss><channel>
 </channel></rss>"""
 
 
-def fake_call(system, user, max_tokens):
+def fake_call(system, user, max_tokens, model=None):
     if "industry analyst" in system:
         return json.dumps(FAKE_TRENDS)
     if "busy manager" in system:
