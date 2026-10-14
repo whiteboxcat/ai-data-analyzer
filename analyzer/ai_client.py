@@ -48,7 +48,7 @@ def available_providers() -> list[dict]:
 
 def _model(pid: str) -> str:
     cfg = PROVIDERS[pid]
-    return os.getenv(cfg["model_env"], cfg["default_model"])
+    return (os.getenv(cfg["model_env"]) or "").strip() or cfg["default_model"]
 
 
 def _extract_json(text: str) -> dict:
@@ -67,13 +67,13 @@ def _extract_json(text: str) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Provider calls
+# Provider calls. `model` lets ask_json switch to a fallback model.
 # --------------------------------------------------------------------------- #
-def _call_openai(system: str, user: str, max_tokens: int) -> str:
+def _call_openai(system: str, user: str, max_tokens: int, model: str) -> str:
     from openai import OpenAI
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     resp = client.chat.completions.create(
-        model=_model("openai"),
+        model=model,
         messages=[{"role": "system", "content": system},
                   {"role": "user", "content": user}],
         response_format={"type": "json_object"},
@@ -82,11 +82,11 @@ def _call_openai(system: str, user: str, max_tokens: int) -> str:
     return resp.choices[0].message.content or ""
 
 
-def _call_claude(system: str, user: str, max_tokens: int) -> str:
+def _call_claude(system: str, user: str, max_tokens: int, model: str) -> str:
     import anthropic
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     resp = client.messages.create(
-        model=_model("claude"),
+        model=model,
         max_tokens=max_tokens,
         system=system,
         messages=[{"role": "user", "content": user}],
@@ -94,12 +94,15 @@ def _call_claude(system: str, user: str, max_tokens: int) -> str:
     return "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
 
 
-def _call_gemini(system: str, user: str, max_tokens: int) -> str:
+def _gemini_client():
     from google import genai
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
+
+
+def _call_gemini(system: str, user: str, max_tokens: int, model: str) -> str:
     from google.genai import types
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
-    resp = client.models.generate_content(
-        model=_model("gemini"),
+    resp = _gemini_client().models.generate_content(
+        model=model,
         contents=user,
         config=types.GenerateContentConfig(
             system_instruction=system,
@@ -113,33 +116,119 @@ def _call_gemini(system: str, user: str, max_tokens: int) -> str:
 _CALLERS = {"openai": _call_openai, "claude": _call_claude, "gemini": _call_gemini}
 
 
+# --------------------------------------------------------------------------- #
+# Fallback models
+# --------------------------------------------------------------------------- #
+# Set e.g. GEMINI_FALLBACK_MODELS=gemini-x-flash-lite,gemini-x-pro to choose them yourself.
+# For Gemini, if it isn't set, the app asks Google which models this key can use.
+_SKIP_MODEL = re.compile(r"embed|tts|image|audio|live|native|vision|computer|robotics|aqa|learnlm|gemma", re.I)
+_discovered: dict[str, tuple[float, list[str]]] = {}
+DISCOVERY_TTL = 6 * 3600
+MAX_FALLBACKS = 3
+
+
+def _version(name: str) -> float:
+    m = re.search(r"gemini-(\d+(?:\.\d+)?)", name)
+    return float(m.group(1)) if m else 0.0
+
+
+def rank_gemini_models(names: list[str]) -> list[str]:
+    """Best fallbacks first: text models, Flash before Pro, stable before preview, newest first."""
+    usable = [n for n in names if n.startswith("gemini-") and not _SKIP_MODEL.search(n)]
+    return sorted(dict.fromkeys(usable), key=lambda n: (
+        0 if "flash" in n else 1,
+        1 if re.search(r"preview|exp|latest", n) else 0,
+        -_version(n),
+        len(n),
+    ))
+
+
+def _discover_gemini_models() -> list[str]:
+    cached = _discovered.get("gemini")
+    if cached and time.time() - cached[0] < DISCOVERY_TTL:
+        return cached[1]
+    names = []
+    try:
+        for m in _gemini_client().models.list():
+            actions = getattr(m, "supported_actions", None) or []
+            if actions and "generateContent" not in actions:
+                continue
+            names.append(str(m.name).removeprefix("models/"))
+    except Exception as e:  # noqa: BLE001 - discovery is best effort
+        log.warning("Could not list Gemini models: %s", str(e)[:150])
+    ranked = rank_gemini_models(names)
+    _discovered["gemini"] = (time.time(), ranked)
+    return ranked
+
+
+def _fallback_models(provider: str, exclude: set[str]) -> list[str]:
+    env = os.getenv(f"{PROVIDERS[provider]['model_env'].rsplit('_', 1)[0]}_FALLBACK_MODELS", "")
+    names = [n.strip() for n in env.split(",") if n.strip()]
+    if not names and provider == "gemini":
+        names = _discover_gemini_models()
+    return [n for n in names if n not in exclude][:MAX_FALLBACKS]
+
+
+# --------------------------------------------------------------------------- #
+# Calling with retries and fallbacks
+# --------------------------------------------------------------------------- #
 # Temporary problems worth retrying: overloaded servers, rate limits, network blips.
 _BUSY = re.compile(r"\b(500|502|503|504)\b|UNAVAILABLE|overloaded|high demand|"
                    r"timed? ?out|connection (?:error|reset|aborted)", re.I)
 _LIMIT = re.compile(r"\b429\b|RESOURCE_EXHAUSTED|rate.?limit|quota", re.I)
-RETRY_WAITS = (3, 8, 20)          # seconds between attempts (4 attempts in total)
-COOL_OFF = 90                     # after giving up, fail fast for this long
+RETRY_WAITS = (3, 8, 20)          # main model: 4 attempts in total
+FALLBACK_WAITS = (3,)             # each fallback model: 2 attempts
+COOL_OFF = 90                     # after everything failed, fail fast for this long
+STICKY = 15 * 60                  # keep using a fallback that worked for this long
 _gave_up_at: dict[str, float] = {}
+_sticky: dict[str, tuple[str, float]] = {}
+last_model: dict[str, str] = {}   # model that answered the last successful call
 
 
-def _friendly(label: str, err: Exception, attempts: int) -> str:
+def _temporary(err: Exception) -> bool:
+    text = str(err)
+    return bool(_BUSY.search(text) or _LIMIT.search(text))
+
+
+def _friendly(label: str, err: Exception, tried: list[str]) -> str:
     text = str(err)
     short = text if len(text) < 300 else text[:300] + "…"
+    models = ", ".join(tried)
     if _LIMIT.search(text):
-        return (f"{label} rate limit or free quota reached (tried {attempts} times). Wait a minute and "
-                f"try again; if it keeps happening, the daily free quota is used up. Details: {short}")
+        return (f"{label} rate limit or free quota reached (tried {models}). Wait a minute and try again; "
+                f"if it keeps happening, the daily free quota is used up. Details: {short}")
     if _BUSY.search(text):
-        return (f"{label} is overloaded right now (tried {attempts} times). This is on the provider's "
-                f"side and usually passes within minutes; try again shortly. Details: {short}")
-    return f"{label} request failed: {short}"
+        return (f"{label} is overloaded right now (tried {models}). This is on the provider's side and "
+                f"usually passes within minutes; try again shortly. Details: {short}")
+    return f"{label} request failed ({models}): {short}"
+
+
+def _attempt(provider: str, model: str, system: str, user: str, max_tokens: int, waits) -> str:
+    for attempt in range(len(waits) + 1):
+        try:
+            return _CALLERS[provider](system, user, max_tokens, model)
+        except (ImportError, KeyError):
+            raise
+        except Exception as e:  # network, auth, rate limit ...
+            if _temporary(e) and attempt < len(waits):
+                wait = waits[attempt] + random.uniform(0, 1.5)
+                log.warning("%s %s attempt %d failed (%s); retrying in %.0fs", provider, model,
+                            attempt + 1, str(e)[:120], wait)
+                time.sleep(wait)
+                continue
+            raise
+    raise AssertionError("unreachable")
 
 
 def ask_json(system: str, user: str, provider: str, max_tokens: int = 8000) -> dict:
     """Send a prompt and return the parsed JSON object the model replies with.
 
-    Temporary errors (overloaded, rate limited, network) are retried with
-    increasing waits. After giving up, further calls to the same provider fail
-    fast for a short while, so one analysis doesn't wait three times over.
+    1. Temporary errors (overloaded, rate limited, network) are retried with waits.
+    2. If the main model stays unavailable, other models of the same provider are
+       tried (for Gemini: the ones Google lists for this key). One that works is
+       kept for STICKY seconds so later calls go straight to it.
+    3. If everything fails, calls fail fast for COOL_OFF seconds so one analysis
+       doesn't wait three times over.
     """
     if provider not in _CALLERS:
         raise AIError(f"Unknown provider '{provider}'")
@@ -149,25 +238,38 @@ def ask_json(system: str, user: str, provider: str, max_tokens: int = 8000) -> d
         raise AIError(f"{label} was unavailable a moment ago; skipped to save time. Try again in "
                       f"{int(COOL_OFF - since) + 1} seconds.")
 
+    default = _model(provider)
+    sticky = _sticky.get(provider)
+    first = sticky[0] if sticky and time.time() - sticky[1] < STICKY else default
     system = system + "\n\nRespond with ONE valid JSON object only. No markdown, no commentary."
-    for attempt in range(len(RETRY_WAITS) + 1):
-        try:
-            raw = _CALLERS[provider](system, user, max_tokens)
-            break
-        except ImportError as e:
-            raise AIError(f"SDK for {provider} not installed: {e}. See requirements.txt") from e
-        except KeyError as e:
-            raise AIError(f"Missing API key {e} in .env") from e
-        except Exception as e:  # network, auth, rate limit ...
-            temporary = bool(_BUSY.search(str(e)) or _LIMIT.search(str(e)))
-            if temporary and attempt < len(RETRY_WAITS):
-                wait = RETRY_WAITS[attempt] + random.uniform(0, 1.5)
-                log.warning("%s attempt %d failed (%s); retrying in %.0fs", label, attempt + 1,
-                            str(e)[:120], wait)
-                time.sleep(wait)
-                continue
-            if temporary:
-                _gave_up_at[provider] = time.time()
-            raise AIError(_friendly(label, e, attempt + 1)) from e
+    tried: list[str] = []
+    try:
+        tried.append(first)
+        raw, used = _attempt(provider, first, system, user, max_tokens, RETRY_WAITS), first
+    except ImportError as e:
+        raise AIError(f"SDK for {provider} not installed: {e}. See requirements.txt") from e
+    except KeyError as e:
+        raise AIError(f"Missing API key {e} in .env") from e
+    except Exception as e:  # noqa: BLE001
+        if not _temporary(e):
+            raise AIError(_friendly(label, e, tried)) from e
+        raw, used, last_err = None, None, e
+        for alt in _fallback_models(provider, exclude={first, default}):
+            tried.append(alt)
+            log.warning("%s %s unavailable; trying %s", label, first, alt)
+            try:
+                raw, used = _attempt(provider, alt, system, user, max_tokens, FALLBACK_WAITS), alt
+                break
+            except Exception as e2:  # noqa: BLE001 - try the next model
+                last_err = e2
+        if raw is None:
+            _gave_up_at[provider] = time.time()
+            raise AIError(_friendly(label, last_err if _temporary(last_err) else e, tried)) from e
+
     _gave_up_at.pop(provider, None)
+    if used != default:
+        _sticky[provider] = (used, time.time())
+    else:
+        _sticky.pop(provider, None)
+    last_model[provider] = used
     return _extract_json(raw)
