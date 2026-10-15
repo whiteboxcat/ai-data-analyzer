@@ -16,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import charts as ch
-from . import ai_client, cleaner, industry, insights, planner
+from . import ai_client, chat, cleaner, industry, insights, planner
 from .loader import frames_to_sheets, load_file, memory_mb
 from .profiler import profile_sheet
 from .utils import to_jsonable
@@ -39,7 +39,8 @@ def data_budget_mb() -> float:
 
 def run(path: str | Path | None = None, provider: str | None = None, context: dict | None = None,
         auto_clean: bool = True, with_trends: bool = True, cleaned_out: str | Path | None = None,
-        raw_frames: dict[str, pd.DataFrame] | None = None, name: str | None = None) -> dict:
+        raw_frames: dict[str, pd.DataFrame] | None = None, name: str | None = None,
+        data_out: str | Path | None = None) -> dict:
     """Analyse a file on disk (`path`) or raw grids already in memory (`raw_frames`,
     e.g. tabs read from the Google Sheets API)."""
     context = context or {}
@@ -129,7 +130,12 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
     trends = industry.run(plan.get("industry"), provider, highlights, context.get("language"), with_trends)
     timings["trends"] = round(time.time() - t0, 2)
 
-    # 7. cleaned data for download (.xlsx, or a .zip of CSVs when too big for Excel)
+    # 7a. keep the cleaned data so "Ask AI" can query it later
+    if data_out:
+        chat.save_data(Path(data_out), {p["sheet"]: cleaned[p["sheet"]] for p in profiles if p["rows"]},
+                       {p["sheet"]: p for p in profiles if p["rows"]})
+
+    # 7b. cleaned data for download (.xlsx, or a .zip of CSVs when too big for Excel)
     cleaned_file = save_cleaned(cleaned, all_issues, clean_logs, cleaned_out) if cleaned_out else None
 
     # skipped sheets (blank)

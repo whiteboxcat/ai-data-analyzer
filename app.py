@@ -26,7 +26,8 @@ from werkzeug.utils import secure_filename
 
 load_dotenv()
 
-from analyzer import pipeline, sources  # noqa: E402  (load .env before importing)
+from analyzer import chat, pipeline, sources  # noqa: E402  (load .env before importing)
+from analyzer.ai_client import last_model as ai_last_model  # noqa: E402
 from analyzer.ai_client import PROVIDERS, available_providers  # noqa: E402
 
 BASE = Path(__file__).parent
@@ -217,7 +218,7 @@ def analyze():
     run_args = dict(provider=provider, context=context,
                     auto_clean=bool(request.form.get("auto_clean")),
                     with_trends=bool(request.form.get("trends")),
-                    cleaned_out=job_dir / "cleaned")
+                    cleaned_out=job_dir / "cleaned", data_out=job_dir / "data.pkl")
 
     try:
         if link:  # a link wins if both were given
@@ -246,6 +247,7 @@ def analyze():
     # the original download isn't needed any more; free the disk
     for p in job_dir.glob("source.*"):
         p.unlink(missing_ok=True)
+    result["context"] = {"language": context.get("language")}   # chat replies in the same language
     (job_dir / "result.json").write_text(json.dumps(result, ensure_ascii=False), encoding="utf-8")
     return redirect(url_for("report", job=job))
 
@@ -261,9 +263,50 @@ def _job_dir(job: str) -> Path:
 
 @app.get("/report/<job>")
 def report(job):
-    r = json.loads((_job_dir(job) / "result.json").read_text(encoding="utf-8"))
+    d = _job_dir(job)
+    r = json.loads((d / "result.json").read_text(encoding="utf-8"))
     label = PROVIDERS.get(r.get("provider") or "", {}).get("label")
-    return render_template("report.html", r=r, job=job, provider_label=label)
+    return render_template("report.html", r=r, job=job, provider_label=label,
+                           providers=available_providers(), chat_has_data=(d / "data.pkl").exists(),
+                           ask_metric=_main_metric(r))
+
+
+def _main_metric(r: dict) -> str | None:
+    """Most important numeric column of the first sheet that has dates, for a suggested question."""
+    from analyzer.planner import rank_metrics
+    for s in r.get("sheets", []):
+        if s["profile"]["by_role"].get("date"):
+            ranked = rank_metrics(s["profile"])
+            if ranked:
+                return ranked[0]
+    return None
+
+
+@app.post("/report/<job>/chat")
+def report_chat(job):
+    """One chat turn. JSON in: {message, history, provider}. JSON out: {answer, steps} or {error}."""
+    d = _job_dir(job)
+    if not request.is_json:            # also blocks cross-site form posts
+        abort(415)
+    body = request.get_json(silent=True) or {}
+    provider = body.get("provider") or None
+    if provider not in {p["id"] for p in available_providers()}:
+        return {"error": "Choose an AI model that has an API key set."}, 400
+    result = json.loads((d / "result.json").read_text(encoding="utf-8"))
+    history = body.get("history") if isinstance(body.get("history"), list) else []
+    try:
+        data = chat.load_data(d / "data.pkl")
+        out = chat.ask(result, data, history, str(body.get("message", "")), provider,
+                       (result.get("context") or {}).get("language"))
+    except ValueError as e:            # empty question etc.
+        return {"error": str(e)}, 400
+    except chat.AIError as e:
+        return {"error": str(e)}, 502
+    except Exception as e:  # noqa: BLE001
+        app.logger.exception("chat failed")
+        return {"error": f"Something went wrong: {e.__class__.__name__}"}, 500
+    out["model"] = ai_last_model.get(provider)
+    return out
 
 
 @app.get("/download/<job>")

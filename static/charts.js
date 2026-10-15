@@ -294,7 +294,149 @@
     });
   }
 
-  window.Viz = { render, renderAll };
+  // ---------- downloads ----------
+  const slug = (t) => (t || "chart").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "chart";
+
+  function save(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }
+
+  // SVG marks are styled by CSS classes; an exported image has no stylesheet,
+  // so copy the computed styles onto each element first.
+  const STYLE_PROPS = ["fill", "fill-opacity", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap",
+    "stroke-linejoin", "opacity", "font-family", "font-size", "font-weight", "visibility"];
+  function inlined(svg, extraRight = 0) {
+    const clone = svg.cloneNode(true);
+    const src = [svg, ...svg.querySelectorAll("*")], dst = [clone, ...clone.querySelectorAll("*")];
+    src.forEach((el, i) => {
+      const cs = getComputedStyle(el);
+      if (cs.visibility === "hidden" || el.getAttribute("fill") === "transparent") { dst[i].remove(); return; }
+      dst[i].setAttribute("style", STYLE_PROPS.map((p) => `${p}:${cs.getPropertyValue(p)}`).join(";"));
+    });
+    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    if (extraRight) {   // labels centred on the right edge would otherwise be cut off
+      const vb = svg.viewBox.baseVal, w = vb.width + extraRight;
+      clone.setAttribute("viewBox", `0 0 ${w} ${vb.height}`);
+      clone.setAttribute("width", w);
+    }
+    return new XMLSerializer().serializeToString(clone);
+  }
+
+  function svgImage(svg, extraRight = 0) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(inlined(svg, extraRight));
+    });
+  }
+
+  async function exportPNG(card) {
+    const chart = card.querySelector(".chart");
+    const fig = JSON.parse(chart.dataset.figure);
+    const svg = chart.querySelector("svg.viz");
+    if (!svg) return;
+    const title = card.querySelector("h3").textContent.trim();
+    const font = css("--font") || "sans-serif";
+    const ink = css("--ink"), muted = css("--graphite"), bg = css("--sheet");
+    const pad = 28, scale = 2;
+    const pie = fig.kind === "pie", extra = pie ? 0 : 28;
+    const img = await svgImage(svg, extra);
+    const sw = svg.viewBox.baseVal.width || svg.clientWidth, sh = svg.viewBox.baseVal.height || svg.clientHeight;
+
+    // legend entries: pie lists every slice; other charts only when there are 2+ series
+    let items = [];
+    if (pie) {
+      const vals = fig.series[0].values, total = vals.reduce((a, b) => a + Math.max(0, b), 0) || 1;
+      items = fig.categories.map((c, i) => ({ text: `${c}  ${(vals[i] / total * 100).toFixed(1)}%  (${compact(vals[i])})`, slot: i }));
+    } else if (fig.series.length > 1) {
+      items = fig.series.map((s) => ({ text: s.name, slot: s.slot }));
+    }
+
+    const measure = document.createElement("canvas").getContext("2d");
+    measure.font = `13px ${font}`;
+    const width = pie ? Math.max(560, sw + 340) : Math.max(sw + extra + pad * 2, 480);
+    const inner = width - pad * 2;
+    // lay out legend: rows that wrap (bar/line) or a column next to the pie
+    const rows = [];
+    if (!pie) {
+      let row = [], x = 0;
+      items.forEach((it) => {
+        const w = 18 + measure.measureText(it.text).width + 18;
+        if (x + w > inner && row.length) { rows.push(row); row = []; x = 0; }
+        row.push({ ...it, x }); x += w;
+      });
+      if (row.length) rows.push(row);
+    }
+    const titleH = 30, legendH = pie ? 0 : rows.length * 22 + (rows.length ? 8 : 0);
+    const noteH = fig.note ? 24 : 0, sourceH = 22;
+    const bodyH = pie ? Math.max(sh, items.length * 24) : sh;
+    const height = pad + titleH + legendH + bodyH + noteH + sourceH + pad;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width * scale; canvas.height = height * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = ink; ctx.font = `600 18px ${font}`; ctx.textBaseline = "top";
+    ctx.fillText(title, pad, pad);
+
+    let y = pad + titleH;
+    ctx.font = `13px ${font}`; ctx.textBaseline = "middle";
+    rows.forEach((row) => {
+      row.forEach((it) => {
+        ctx.fillStyle = color(it.slot); ctx.fillRect(pad + it.x, y + 4, 10, 10);
+        ctx.fillStyle = muted; ctx.fillText(it.text, pad + it.x + 16, y + 9);
+      });
+      y += 22;
+    });
+    if (rows.length) y += 8;
+
+    ctx.drawImage(img, pad, y, sw + extra, sh);
+    if (pie) {
+      let ly = y + Math.max(0, (sh - items.length * 24) / 2);
+      items.forEach((it) => {
+        ctx.fillStyle = color(it.slot); ctx.fillRect(pad + sw + 28, ly + 5, 11, 11);
+        ctx.fillStyle = ink; ctx.fillText(it.text, pad + sw + 46, ly + 11);
+        ly += 24;
+      });
+    }
+    y += bodyH;
+    ctx.font = `12px ${font}`; ctx.fillStyle = muted;
+    if (fig.note) { ctx.fillText(fig.note, pad, y + 12); y += noteH; }
+    ctx.fillText(document.querySelector(".report-head h1")?.textContent.trim() || "", pad, y + 12);
+
+    canvas.toBlob((blob) => save(blob, slug(title) + ".png"), "image/png");
+  }
+
+  function exportCSV(card) {
+    const rows = JSON.parse(card.dataset.table || "[]");
+    if (!rows.length) return;
+    const cols = Object.keys(rows[0]);
+    const cell = (v) => {
+      if (v === null || v === undefined) return "";
+      const t = String(v);
+      return /[",\n;]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t;
+    };
+    const text = [cols.map(cell).join(","), ...rows.map((r) => cols.map((c) => cell(r[c])).join(","))].join("\r\n");
+    save(new Blob(["\ufeff" + text], { type: "text/csv;charset=utf-8" }),   // BOM so Excel reads UTF-8
+      slug(card.querySelector("h3").textContent) + ".csv");
+  }
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-download]");
+    if (!btn) return;
+    const card = btn.closest(".chart-card");
+    if (btn.dataset.download === "png") exportPNG(card).catch((err) => alert("Couldn't create the image: " + err));
+    else exportCSV(card);
+  });
+
+  window.Viz = { render, renderAll, exportPNG, exportCSV };
   let t;
   window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(renderAll, 150); });
   window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderAll);
