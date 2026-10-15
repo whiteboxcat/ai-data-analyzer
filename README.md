@@ -44,10 +44,17 @@ cp .env.example .env        # then add your key(s)
 python tests/make_sample.py # creates a messy sample workbook
 python tests/test_pipeline.py   # offline test, no keys needed
 python tests/test_sources.py    # Google links (simulated) + a 600k-row file
+python tests/test_chat.py       # queries and the Ask AI loop (fake AI)
 python app.py               # http://127.0.0.1:5000  (add FLASK_DEBUG=1 to .env for auto-reload)
 ```
 
 Try `tests/sample_messy.xlsx` first. It has title rows, mixed date formats, "Rp 1.250.000" text numbers, duplicate rows, inconsistent spelling, a YYYYMMDD date sheet and a blank sheet.
+
+## Ask AI and downloads
+
+- **Download a chart:** every chart has **PNG** (image with title and legend) and **CSV** (the numbers behind it) buttons. Both are created in your browser.
+- **Ask AI tab:** chat with the AI about the analysed file. Pick the model at the top of the tab. The AI never runs code and never gets the full data: when it needs numbers it sends a small JSON query (filters, group by, time bucket, sum/mean/count…), Python checks and computes it on the cleaned data (`analyzer/query.py`), and the AI answers from the result. Each answer lists the queries it used under **Numbers used**. Up to 4 AI requests per question.
+- The conversation is kept while the browser tab is open. Cleaned data for chat is stored next to the report (`data.pkl`) and deleted with it after 24 hours.
 
 ## Deploy to Render (free)
 
@@ -116,6 +123,8 @@ The app tries private access first, then the public link, and tells you which sh
 | `analyzer/insights.py` | AI insights and recommendations (fallback: computed notes) |
 | `analyzer/industry.py` | News fetching + AI trend/competitor summary |
 | `analyzer/pipeline.py` | Runs everything in order |
+| `analyzer/query.py` | Safe JSON query language the chat AI uses to get exact numbers |
+| `analyzer/chat.py` | Ask AI: question → queries → answer loop |
 | `static/charts.js` | Small dependency-free SVG chart renderer (works offline, light and dark mode) |
 
 ## What gets auto-fixed vs flagged

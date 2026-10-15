@@ -32,6 +32,8 @@
 <div class="workbook">
 <nav class="tabs" role="tablist" aria-label="Report sections">
   <button class="tab" role="tab" data-tab="summary" aria-controls="summary">Summary</button>
+  <button class="tab ask-tab" role="tab" data-tab="ask" aria-controls="ask">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>Ask AI</button>
   <button class="tab" role="tab" data-tab="quality" aria-controls="quality">Data cleaning <span class="count">{{ r.issues|length }}</span></button>
   <span class="tab-gap" aria-hidden="true"></span>
   {% for s in r.sheets %}
@@ -100,6 +102,53 @@
   </div>
 </section>
 
+{# ------------------------------------------------------------------ ASK AI #}
+<section class="panel" id="ask" role="tabpanel" hidden>
+  <div class="ask-head">
+    <div>
+      <h2>Ask about this data</h2>
+      <p class="quiet small" style="margin-top:4px">The AI asks the app for exact numbers from your cleaned data, so answers come from real figures.</p>
+    </div>
+    {% if providers %}
+    <label class="field ask-model">AI model
+      <select id="ask-provider">
+        {% for p in providers %}<option value="{{ p.id }}" {% if p.id == r.provider %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
+      </select>
+    </label>
+    {% endif %}
+  </div>
+
+  {% if not providers %}
+    <p class="alert warn">Chat needs an AI model. Add <code>GEMINI_API_KEY</code>, <code>OPENAI_API_KEY</code> or <code>ANTHROPIC_API_KEY</code> in your settings.</p>
+  {% else %}
+    {% if not chat_has_data %}
+    <p class="alert warn">This report was made before chat was available, so answers can only use the summary. Analyse the file again for exact numbers.</p>
+    {% endif %}
+    <div class="chat" id="chat" data-url="{{ url_for('report_chat', job=job) }}" data-job="{{ job }}">
+      <div class="chat-log" id="chat-log" aria-live="polite">
+        <div class="chat-empty" id="chat-empty">
+          <p>Ask anything about <b>{{ r.file }}</b>. For example:</p>
+          <div class="suggestions">
+            {% set qs = ((r.insights or {}).next_questions or [])[:2] %}
+            {% for q in qs %}<button type="button" class="suggestion">{{ q }}</button>{% endfor %}
+            <button type="button" class="suggestion">What are the 3 most important things in this data?</button>
+            <button type="button" class="suggestion">What looks unusual or worth double-checking?</button>
+            {% if ask_metric %}
+            <button type="button" class="suggestion">Which month had the highest {{ ask_metric }}, and what drove it?</button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <form class="chat-input" id="chat-form">
+        <textarea id="chat-text" rows="2" maxlength="2000" placeholder="Ask a question about your data…" aria-label="Your question"></textarea>
+        <button class="btn" type="submit" id="chat-send">Send</button>
+      </form>
+      <p class="chat-foot quiet small">Enter to send, Shift+Enter for a new line. Each question uses a few AI requests.
+        <button type="button" class="text-btn" id="chat-clear" hidden>Clear conversation</button></p>
+    </div>
+  {% endif %}
+</section>
+
 {# ------------------------------------------------------------------ QUALITY #}
 <section class="panel" id="quality" role="tabpanel" hidden>
   <div>
@@ -163,8 +212,16 @@
   {% if s.charts %}
   <div class="charts">
     {% for c in s.charts %}
-    <article class="chart-card">
-      <h3>{{ c.title }}</h3>
+    <article class="chart-card" data-table='{{ c.table|tojson }}'>
+      <div class="chart-head">
+        <h3>{{ c.title }}</h3>
+        <div class="chart-tools" aria-label="Download">
+          <button type="button" class="tool-btn" data-download="png" title="Download chart as image (PNG)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4"/><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>PNG</button>
+          <button type="button" class="tool-btn" data-download="csv" title="Download the numbers (CSV)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4"/><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>CSV</button>
+        </div>
+      </div>
       {% if c.reason %}<p class="why">{{ c.reason }}</p>{% else %}<div style="height:12px"></div>{% endif %}
       <div class="chart" data-figure='{{ c.figure|tojson }}' role="img" aria-label="{{ c.title }}"></div>
       {% if c.insight %}<p class="takeaway">{{ c.insight }}</p>{% endif %}
@@ -283,6 +340,7 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='charts.js') }}"></script>
+<script src="{{ url_for('static', filename='chat.js') }}"></script>
 <script>
   const tabs = [...document.querySelectorAll(".tab")];
   function show(id, focus) {
