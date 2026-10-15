@@ -153,3 +153,59 @@ if __name__ == "__main__":
     test_no_retry_or_fallback_on_real_errors()
     test_env_fallbacks_and_ranking()
     test_discovery_reads_google_list()
+
+
+# --------------------------------------------------------------------------- #
+# Regression: google-genai closes its HTTP connection when the Client object is
+# garbage-collected. Using `_gemini_client().models...` without keeping the
+# client failed with "Cannot send a request, as the client has been closed."
+# --------------------------------------------------------------------------- #
+class _Api:
+    closed = False
+
+
+class _Models:
+    def __init__(self, api):
+        self.api = api                      # like the real SDK: no reference back to Client
+
+    def _check(self):
+        if self.api.closed:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+
+    def generate_content(self, **kw):
+        self._check()
+        return SimpleNamespace(text='{"ok": true}')
+
+    def list(self):
+        self._check()
+        for name in ["models/gemini-3.8-flash", "models/gemini-3.8-flash-lite"]:
+            self._check()
+            yield SimpleNamespace(name=name, supported_actions=["generateContent"])
+
+
+class _ClosingClient:
+    def __init__(self):
+        self._api = _Api()
+        self.models = _Models(self._api)
+
+    def __del__(self):
+        self._api.closed = True
+
+
+def _fake_genai_types():
+    types = SimpleNamespace(GenerateContentConfig=lambda **kw: kw)
+    genai = SimpleNamespace(types=types)
+    return {"google": SimpleNamespace(genai=genai), "google.genai": genai, "google.genai.types": types}
+
+
+def test_client_kept_alive_during_calls():
+    fresh()
+    with mock.patch.dict(sys.modules, _fake_genai_types()), \
+            mock.patch.object(ai_client, "_gemini_client", side_effect=lambda: _ClosingClient()):
+        assert ai_client._call_gemini("s", "u", 100, "gemini-3.8-flash") == '{"ok": true}'
+        assert ai_client._discover_gemini_models() == ["gemini-3.8-flash", "gemini-3.8-flash-lite"]
+    print("OK Gemini client stays open for generate_content and models.list")
+
+
+if __name__ == "__main__":
+    test_client_kept_alive_during_calls()
