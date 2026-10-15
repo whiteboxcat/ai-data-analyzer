@@ -101,7 +101,10 @@ def _gemini_client():
 
 def _call_gemini(system: str, user: str, max_tokens: int, model: str) -> str:
     from google.genai import types
-    resp = _gemini_client().models.generate_content(
+    # Keep `client` in a variable: google-genai closes its connection as soon as
+    # the Client object is garbage-collected, even mid-request.
+    client = _gemini_client()
+    resp = client.models.generate_content(
         model=model,
         contents=user,
         config=types.GenerateContentConfig(
@@ -149,7 +152,8 @@ def _discover_gemini_models() -> list[str]:
         return cached[1]
     names = []
     try:
-        for m in _gemini_client().models.list():
+        client = _gemini_client()          # must outlive the paged iteration below
+        for m in client.models.list():
             actions = getattr(m, "supported_actions", None) or []
             if actions and "generateContent" not in actions:
                 continue
