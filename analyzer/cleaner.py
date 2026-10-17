@@ -22,14 +22,51 @@ NON_NEGATIVE_HINTS = re.compile(r"(qty|quantity|jumlah|price|harga|stock|stok|co
 
 
 def _issue(sheet, column, kind, severity, title, detail, recommendation,
-           affected=0, auto_fix=False):
+           affected=0, auto_fix=False, **extra):
     return {
         "id": f"{sheet}|{column}|{kind}",
         "sheet": sheet, "column": column, "kind": kind,
         "severity": severity, "title": title, "detail": detail,
         "recommendation": recommendation, "affected_rows": int(affected),
-        "auto_fix": auto_fix,
+        "auto_fix": auto_fix, **extra,
     }
+
+
+# Columns that describe *how* a row was loaded, not the business fact itself.
+# Rows identical apart from these are the same record loaded twice (BASE vs RERUN).
+VERSION_COL = re.compile(r"(^|_)(version|extract|rerun|batch|load|loaded|run|snapshot|ts|timestamp|"
+                         r"ingest|ingested|import|imported|source_file|file_name)(_|$)", re.I)
+
+_UNIT = re.compile(r"(?<=\d)\s*(ml|l|ltr|liter|litre|g|gr|gram|grams|kg|mg|pcs|pc|oz)\b", re.I)
+_LEGAL = re.compile(r"^(pt|cv|ud|tbk)\.?\s+|[\s,]+(tbk|inc|ltd|llc|corp|co)\.?$", re.I)
+
+
+def loose_key(v) -> str:
+    """'FBL 200ml', 'FBL-200', 'fbl200' -> 'fbl200'; 'PT. Sentral Mapan' -> 'sentralmapan'."""
+    t = str(v).strip().lower()
+    t = _LEGAL.sub("", t)
+    t = _UNIT.sub("", t)
+    return re.sub(r"[^0-9a-z]+", "", t)
+
+
+def _similar_labels(s: pd.Series) -> list[list[str]]:
+    """Groups of different labels that look like the same thing (beyond case/spaces)."""
+    vals = pd.Series(s.dropna().astype(str).str.strip().str.replace(r"\s+", " ", regex=True).unique())
+    if len(vals) < 2 or len(vals) > 500:
+        return []
+    keys = vals.map(loose_key)
+    groups = []
+    for k, grp in vals.groupby(keys):
+        distinct = sorted(set(grp))
+        if len(k) >= 2 and len({g.casefold() for g in distinct}) > 1:
+            groups.append(distinct)
+    return groups
+
+
+def _main_metric(df: pd.DataFrame, profile: dict) -> str | None:
+    from .planner import rank_metrics   # local import: planner imports charts, not cleaner
+    ranked = rank_metrics(profile)
+    return ranked[0] if ranked else None
 
 
 def _case_variants(s: pd.Series) -> dict[str, str]:
@@ -60,6 +97,46 @@ def detect_issues(df: pd.DataFrame, profile: dict) -> list[dict]:
                              f"{dup} exact duplicate row{'s' if dup != 1 else ''}",
                              "Rows that are identical in every column usually come from double exports.",
                              "Remove duplicates, keeping the first occurrence.", dup, True))
+
+    # Same record loaded twice: identical except "how it was loaded" columns ------
+    reloaded = 0
+    vcols = [c for c in df.columns if VERSION_COL.search(str(c).strip().replace(" ", "_"))]
+    rest = [c for c in df.columns if c not in vcols]
+    if vcols and len(rest) >= 2:
+        again = df.duplicated(subset=rest, keep="first") & ~df.duplicated(keep="first")
+        reloaded = int(again.sum())
+        if reloaded:
+            id_col = next((c["name"] for c in profile["columns"] if c["role"] == "id"), None)
+            subject = (", ".join(df.loc[again, id_col].astype(str).unique()[:5]) if id_col
+                       else f"{reloaded} row{'s' if reloaded != 1 else ''}")
+            twins = df.duplicated(subset=rest, keep=False)        # every copy, first one included
+            shown = "; ".join(f"{v} ({', '.join(sorted(map(str, df.loc[twins, v].dropna().unique()))[:4])})"
+                              for v in vcols[:2])
+            metric = _main_metric(df, profile)
+            impact = ""
+            if metric:
+                extra = pd.to_numeric(parse_numeric_text(df.loc[again, metric]) if is_texty(df[metric])
+                                      else df.loc[again, metric], errors="coerce").sum()
+                if extra:
+                    impact = f" Keeping both double-counts {metric} by {extra:,.0f}."
+            issues.append(_issue(sheet, None, "reloaded_rows", "high",
+                                 f"{reloaded} row{'s' if reloaded != 1 else ''} loaded twice "
+                                 f"({', '.join(map(str, vcols[:2]))} differs)",
+                                 f"{subject} {'appears' if reloaded == 1 and id_col else 'appear'} more than once with every value "
+                                 f"the same except {shown}: the same record extracted again, for example a base "
+                                 f"load and a rerun.{impact}",
+                                 "Keep one copy of each (the first one), drop the repeated loads.",
+                                 reloaded, True, subset=[str(c) for c in rest]))
+
+    # Tables placed next to the data (pivots, summaries) ----------------------
+    for side in df.attrs.get("side_tables", []):
+        starts = ", ".join(f"'{t}'" for t in side.get("starts_with", []))
+        issues.append(_issue(sheet, None, "side_table", "low",
+                             f"Ignored a separate table in columns {side['columns']}",
+                             f"It sits beside the data after an empty column and looks like a pivot or summary"
+                             f"{' (starts with ' + starts + ')' if starts else ''}. It wasn't mixed into the data.",
+                             "Nothing to do. If it's real data, move it to its own sheet.", 0, False, info=True))
+    mapped_cols = set(df.attrs.get("mapped_cols", []))
 
     for col in profile["columns"]:
         name, role = col["name"], col["role"]
@@ -152,10 +229,24 @@ def detect_issues(df: pd.DataFrame, profile: dict) -> list[dict]:
                                  f"{miss} missing values in '{name}' ({pct}%)",
                                  "Empty cells or blank text.", rec, miss, auto))
 
+        # Different spellings that look like the same item (no lookup sheet) ---
+        if role in ("category", "text") and is_texty(s) and name not in mapped_cols:
+            groups = [g for g in _similar_labels(s)]
+            if groups:
+                rows = int(s.astype(str).str.strip().isin([v for g in groups for v in g]).sum())
+                shown = "; ".join(" / ".join(f"'{v}'" for v in g) for g in groups[:4])
+                issues.append(_issue(sheet, name, "similar_labels", "medium",
+                                     f"'{name}' may have the same item written differently",
+                                     f"These look alike once spaces, dashes, units (ml, g…) and PT/CV are ignored: "
+                                     f"{shown}. If they're the same, totals are split between spellings.",
+                                     "If they are the same item, add a lookup sheet with a '"
+                                     f"{name}' and a '{re.sub(r'_raw$', '', name)}_canonical' column (the app will "
+                                     "use it automatically), or fix the spelling in the source.", rows))
+
         # Duplicated IDs ---------------------------------------------------------
         if role == "id":
             d = int(s.dropna().duplicated().sum())
-            if d and d != dup:
+            if d and d not in (dup, dup + reloaded, reloaded):
                 issues.append(_issue(sheet, name, "duplicate_ids", "medium",
                                      f"{d} repeated values in ID column '{name}'",
                                      "Could be multiple line-items per order (fine) or double entries (not fine).",
@@ -235,6 +326,12 @@ def apply_fixes(df: pd.DataFrame, profile: dict, issues: list[dict],
         before = len(out)
         out = out.drop_duplicates().reset_index(drop=True)
         log.append(f"Removed {before - len(out)} duplicate rows.")
+    for i in by_kind.get("reloaded_rows", []):
+        subset = [c for c in i.get("subset", []) if c in out.columns]
+        if len(subset) >= 2:
+            before = len(out)
+            out = out[~out.duplicated(subset=subset, keep="first")].reset_index(drop=True)
+            log.append(f"Removed {before - len(out)} row(s) loaded twice (kept the first copy).")
 
     # 6. missing categories
     for i in by_kind.get("missing_values", []):

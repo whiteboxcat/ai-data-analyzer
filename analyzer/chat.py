@@ -84,6 +84,7 @@ def build_context(result: dict) -> dict:
     return {
         "file": result.get("file"),
         "workbook_summary": result.get("workbook_summary"),
+        "workbook_notes": result.get("workbook_notes"),
         "industry": (result.get("industry") or {}).get("name"),
         "sheets": [{**compact_profile(s["profile"]), "description": s.get("description"),
                     "kpis": s.get("kpis")} for s in result.get("sheets", [])],

@@ -52,6 +52,9 @@ PLAN_SYSTEM = """You are a senior data analyst. You receive a PROFILE of a sprea
 column names, a semantic role for each column (date / metric / category / id / boolean / text / constant / empty),
 statistics and a few sample rows.
 
+If user_context has "workbook_notes" (README / data dictionary sheets from the file), follow them:
+they explain grain, versions and definitions.
+
 Your jobs:
 1. Understand what each sheet is about and how sheets relate.
 2. Plan the most useful charts per sheet (max {max_charts} per sheet, fewer is fine). Prefer charts that answer
@@ -69,6 +72,7 @@ Chart rules (charts violating them are discarded):
 - "agg": sum, mean, median, count, min, max. Do NOT sum non-additive metrics like price, rating, stock level — use mean.
 - "group_by" (optional): a category with few values, to split series
 - NEVER use id, text, constant or empty columns in charts
+- When a column exists both as "<x>_raw" and "<x>_canonical", use the _canonical one
 - Never plan two charts that show the same thing
 
 Return JSON:
@@ -108,6 +112,10 @@ def fallback_charts(profile: dict) -> list[dict]:
     cats = sorted(br.get("category", []), key=lambda c: next(
         x["unique"] for x in profile["columns"] if x["name"] == c))
     cats = [c for c in cats if next(x["unique"] for x in profile["columns"] if x["name"] == c) > 1]
+    # skip "sku_raw" when a standardised "sku_canonical" exists (same thing, cleaner)
+    names = [c["name"] for c in profile["columns"]]
+    cats = [c for c in cats if not any(n != c and n.lower().startswith(re.sub(r"_raw$", "", c.lower()) + "_canonical")
+                                       for n in names)]
     charts: list[dict] = []
     m = metrics[0] if metrics else None
     agg = "sum" if m and is_additive(m) else "mean"
