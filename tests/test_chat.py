@@ -61,7 +61,8 @@ def scripted_ai(script, seen):
     """Fake provider that replays `script` (a list of dicts) and records each payload."""
     def caller(system, user, max_tokens, model=None):
         seen.append(json.loads(user))
-        return json.dumps(script[len(seen) - 1])
+        item = script[len(seen) - 1]
+        return item if isinstance(item, str) else json.dumps(item)   # str = raw reply text
     return caller
 
 
@@ -90,6 +91,29 @@ def test_chat_loop(result, data):
         out = chat.ask(result, data, [], "loop?", "gemini")
     assert len(seen) == chat.MAX_STEPS and seen[-1]["instruction"].startswith("No more queries")
     print(f"OK chat stops after {chat.MAX_STEPS} AI calls")
+
+
+def test_non_json_replies(result, data):
+    seen = []
+    prose = "While anomalies alone don't prove fraud, there are **risk signals**:\n- 62 projects with Unknown contractors"
+    with mock.patch.dict(ai_client._CALLERS, {"gemini": scripted_ai([prose], seen)}):
+        out = chat.ask(result, data, [], "Any corruption?", "gemini")
+    assert out["answer"] == prose
+    assert "never state or imply" in chat.SYSTEM
+
+    seen.clear()
+    script = ['{"action": "query", "query": {"sheet": "Sales", "group_by": ["Ch',     # cut off
+              {"action": "answer", "answer": "Recovered."}]
+    with mock.patch.dict(ai_client._CALLERS, {"gemini": scripted_ai(script, seen)}):
+        out = chat.ask(result, data, [], "Which channel?", "gemini")
+    assert out["answer"] == "Recovered." and "not valid JSON" in seen[1]["query_results_so_far"][0]["error"]
+
+    seen.clear()
+    cut_answer = '{"action": "answer", "answer": "Shopee leads.\\n- Shopee: 114,260,000\\n- TikT'
+    with mock.patch.dict(ai_client._CALLERS, {"gemini": scripted_ai([cut_answer], seen)}):
+        out = chat.ask(result, data, [], "Which channel?", "gemini")
+    assert out["answer"].startswith("Shopee leads.\n- Shopee: 114,260,000") and "cut off" in out["answer"], out
+    print("OK prose replies, cut-off answers and broken queries are handled")
 
 
 def test_endpoint(result, tmp):
@@ -124,6 +148,7 @@ if __name__ == "__main__":
         data = chat.load_data(tmp / "data.pkl")
         test_queries(data)
         test_chat_loop(result, data)
+        test_non_json_replies(result, data)
         test_endpoint(result, tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
