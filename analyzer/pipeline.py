@@ -16,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import charts as ch
-from . import ai_client, chat, cleaner, industry, insights, planner
+from . import ai_client, chat, cleaner, industry, insights, mapping, planner
 from .loader import frames_to_sheets, load_file, memory_mb
 from .profiler import profile_sheet
 from .utils import to_jsonable
@@ -58,6 +58,17 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
         raise ValueError(f"This data is too big for the server's memory ({rows:,} rows, about {size:,.0f} MB "
                          f"loaded; the limit is {budget:,.0f} MB). Remove unused columns or sheets, "
                          "split it by period, or move to a larger Render plan and raise MAX_DATA_MB.")
+    # 0a. notes / data-dictionary sheets: context for the AI, not data
+    notes = {n: df.attrs["doc_text"] for n, df in sheets.items() if df.attrs.get("doc_text")}
+    for n in notes:
+        sheets.pop(n)
+    if not sheets:
+        raise ValueError("This file only contains notes, no data tables.")
+    if notes:
+        context = {**context, "workbook_notes": "\n\n".join(f"[{n}]\n{t}" for n, t in notes.items())[:8000]}
+
+    # 0b. lookup sheets (sku_raw -> sku_canonical) standardise names in the other sheets
+    map_issues, map_logs, refs = mapping.standardise(sheets, apply=auto_clean)
     sheet_names = list(sheets)
 
     # 1. profile + quality checks on the RAW data, then clean.
@@ -67,9 +78,10 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
         df = sheets.pop(sname)               # drop the raw copy as soon as it's cleaned
         try:
             raw_profile = profile_sheet(df, sname)
-            iss = cleaner.detect_issues(df, raw_profile)
+            iss = map_issues.get(sname, []) + cleaner.detect_issues(df, raw_profile)
             if auto_clean:
                 clean_df, log_lines = cleaner.apply_fixes(df, raw_profile, iss)
+                log_lines = map_logs.get(sname, []) + log_lines
             else:
                 clean_df, log_lines = df, []
             # 2. re-profile the cleaned data (types are now correct)
@@ -87,7 +99,8 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
     timings["profile_clean"] = round(time.time() - t0, 2)
 
     # 3. AI plan
-    plan = planner.plan(profiles, all_issues, provider, context)
+    # lookup sheets are reference material: no charts, and not sent to the AI planner
+    plan = planner.plan([p for p in profiles if p["sheet"] not in refs], all_issues, provider, context)
     timings["plan"] = round(time.time() - t0, 2)
 
     # 4. Python executes the charts
@@ -97,6 +110,9 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
             continue
         df = cleaned[p["sheet"]]
         sp = plan["sheets"].get(p["sheet"], {"charts": []})
+        if p["sheet"] in refs:
+            sp = {"charts": [], "description": "Lookup table, used to standardise names in "
+                                               + ", ".join(refs[p["sheet"]]) + "."}
         built = []
         for i, spec in enumerate(sp["charts"]):
             try:
@@ -147,6 +163,8 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
         "workbook_summary": plan.get("workbook_summary"), "industry": plan.get("industry"),
         "plan_source": plan["source"], "plan_error": plan.get("error"), "rejected_charts": plan["rejected"],
         "sheets": sheet_results, "empty_sheets": empty, "failed_sheets": failed, "issues": all_issues,
+        "notes_sheets": list(notes), "workbook_notes": context.get("workbook_notes"),
+        "reference_sheets": refs,
         "insights": ins, "trends": trends, "timings": timings,
     })
 

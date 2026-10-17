@@ -96,6 +96,7 @@
         <td class="quiet">{{ s.description or '' }}</td></tr>
       {% endfor %}
       {% for e in r.empty_sheets %}<tr><td>{{ e }}</td><td colspan="5" class="quiet">Empty, skipped</td></tr>{% endfor %}
+      {% for n in r.notes_sheets or [] %}<tr><td>{{ n }}</td><td colspan="5" class="quiet">Notes or data dictionary, not charted. The AI reads it as context.</td></tr>{% endfor %}
       {% for name, err in (r.failed_sheets or {}).items() %}<tr><td>{{ name }}</td><td colspan="5"><span class="status review">Skipped</span> <span class="quiet">This sheet couldn't be analysed: {{ err }}</span></td></tr>{% endfor %}
       </tbody>
     </table></div>
@@ -158,6 +159,7 @@
     <div class="legend-line" style="margin-top:12px">
       <span><span class="status fixed">Fixed</span> corrected automatically</span>
       <span><span class="status review">Review</span> needs your decision</span>
+      <span><span class="status info">Note</span> for your information</span>
     </div>
   </div>
 
@@ -172,7 +174,8 @@
         <div class="issue-top">
           <b>{{ i.title }}</b>
           <span><span class="sev-text">{{ i.severity|capitalize }} impact</span>
-          {% if i.auto_fix and r.auto_clean %}<span class="status fixed">Fixed</span>
+          {% if i.info %}<span class="status info">Note</span>
+          {% elif i.auto_fix and r.auto_clean %}<span class="status fixed">Fixed</span>
           {% elif i.auto_fix %}<span class="status info">Fixable</span>
           {% else %}<span class="status review">Review</span>{% endif %}</span>
         </div>

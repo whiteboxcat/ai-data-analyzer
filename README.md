@@ -45,10 +45,19 @@ python tests/make_sample.py # creates a messy sample workbook
 python tests/test_pipeline.py   # offline test, no keys needed
 python tests/test_sources.py    # Google links (simulated) + a 600k-row file
 python tests/test_chat.py       # queries and the Ask AI loop (fake AI)
+python tests/test_workbook.py   # lookup sheets, reruns, side pivots, notes sheets
 python app.py               # http://127.0.0.1:5000  (add FLASK_DEBUG=1 to .env for auto-reload)
 ```
 
 Try `tests/sample_messy.xlsx` first. It has title rows, mixed date formats, "Rp 1.250.000" text numbers, duplicate rows, inconsistent spelling, a YYYYMMDD date sheet and a blank sheet.
+
+## Workbook-aware cleaning
+
+- **Lookup sheets:** a sheet with a `<thing>_raw` and a `<thing>_canonical` column (also `_clean`, `_std`, `_standard`, `_master`…) is used automatically. Every other sheet with that `_raw` column gets the standard column added right next to it, e.g. `FBL 200ml` and `FBL-200` → `FBL200`. The report lists which spellings were merged and which values weren't in the lookup.
+- **No lookup sheet:** labels that look alike once spaces, dashes, units (ml, g…) and PT/CV are ignored are flagged for review, not merged.
+- **Rows loaded twice:** rows identical except a version/extract/batch/timestamp column (e.g. BASE vs RERUN) are reported with the double-counted amount, and one copy is kept.
+- **Pivots beside the data:** a table placed after an empty column (Excel pivots, summaries) is set aside instead of becoming fake columns.
+- **README / data dictionary sheets** aren't charted; their text is given to the AI as context.
 
 ## Ask AI and downloads
 
@@ -123,6 +132,7 @@ The app tries private access first, then the public link, and tells you which sh
 | `analyzer/insights.py` | AI insights and recommendations (fallback: computed notes) |
 | `analyzer/industry.py` | News fetching + AI trend/competitor summary |
 | `analyzer/pipeline.py` | Runs everything in order |
+| `analyzer/mapping.py` | Uses lookup sheets (`x_raw` → `x_canonical`) to standardise names across sheets |
 | `analyzer/query.py` | Safe JSON query language the chat AI uses to get exact numbers |
 | `analyzer/chat.py` | Ask AI: question → queries → answer loop |
 | `static/charts.js` | Small dependency-free SVG chart renderer (works offline, light and dark mode) |

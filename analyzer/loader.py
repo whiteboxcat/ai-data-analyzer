@@ -164,12 +164,110 @@ def _excel_engine() -> str | None:
         return None
 
 
+def _col_letter(i: int) -> str:
+    """0 -> A, 25 -> Z, 26 -> AA (Excel column letters)."""
+    out = ""
+    i += 1
+    while i:
+        i, r = divmod(i - 1, 26)
+        out = chr(65 + r) + out
+    return out
+
+
+_PIVOT_WORDS = re.compile(r"^(row labels|column labels|grand total|(sum|count|average|max|min) of .+)$", re.I)
+
+
+def _split_blocks(raw: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
+    """Separate the main table from small tables placed beside it.
+
+    People often put a pivot table or a summary to the right of their data,
+    after an empty column. Read as one grid, that summary turns into fake
+    columns full of blanks. Here the grid is cut at fully empty columns; the
+    biggest block that isn't an Excel pivot is the data, and pivots or smaller
+    blocks are set aside and reported.
+    """
+    filled = raw.notna().any(axis=0).tolist()
+    blocks, start = [], None
+    for i, f in enumerate(filled + [False]):
+        if f and start is None:
+            start = i
+        elif not f and start is not None:
+            blocks.append((start, i - 1))
+            start = None
+    if len(blocks) <= 1:
+        return raw, []
+    sizes = [int(raw.iloc[:, a:b + 1].notna().sum().sum()) for a, b in blocks]
+    parts = [raw.iloc[:, a:b + 1].dropna(how="all") for a, b in blocks]
+    texts = [{str(v).strip() for v in p.values.ravel() if isinstance(v, str)} for p in parts]
+    # Excel pivot tables give themselves away with their own labels.
+    pivot = [any(_PIVOT_WORDS.search(t) for t in tx) for tx in texts]
+    candidates = [k for k in range(len(blocks)) if not pivot[k]] or list(range(len(blocks)))
+    main = max(candidates, key=lambda k: sizes[k])
+    keep, side = [main], []
+    main_part = parts[main]
+    main_header = {str(v).strip() for v in main_part.iloc[0].dropna().tolist()}
+    for k, (a, b) in enumerate(blocks):
+        if k == main:
+            continue
+        part = parts[k]
+        looks_pivot = pivot[k]
+        # a pivot filter cell repeats a column name of the main table ("extract_version | BASE")
+        repeats_header = bool(texts[k] & main_header)
+        # Otherwise: a big block starting on the same row is part of the table
+        # (a table with one empty column inside it), not a side table.
+        same_top = part.index.min() == main_part.index.min()
+        if not looks_pivot and not repeats_header and sizes[k] >= 0.5 * sizes[main] and same_top:
+            keep.append(k)
+            continue
+        first = [str(v) for v in part.iloc[0].dropna().tolist()][:3]
+        side.append({"columns": f"{_col_letter(a)}–{_col_letter(b)}" if b > a else _col_letter(a),
+                     "cells": sizes[k], "starts_with": first})
+    cols = [c for k in sorted(keep) for c in range(blocks[k][0], blocks[k][1] + 1)]
+    return raw.iloc[:, cols], side
+
+
+_DOC_NAME = re.compile(r"read\s*_?me|^notes?$|^about|instruction|dictionary|glossary|definition|"
+                       r"metadata|^legend$|^info$|^keterangan|^catatan", re.I)
+
+
+def _doc_text(raw: pd.DataFrame, name: str) -> str | None:
+    """Text of a notes / data-dictionary sheet, or None if it's a data sheet.
+
+    These sheets explain the data ("duplicate reruns may exist") instead of
+    holding it. They're given to the AI as context and not charted.
+    """
+    grid = raw.dropna(how="all").dropna(axis=1, how="all")
+    if grid.empty:
+        return None
+    cells = [v for v in grid.values.ravel() if v is not None and not (isinstance(v, float) and pd.isna(v))]
+    texts = [str(v).strip() for v in cells if isinstance(v, str) and str(v).strip()]
+    all_text = len(texts) == len(cells)
+    wordy = bool(texts) and sum(len(t) for t in texts) / len(texts) >= 25
+    if not (_DOC_NAME.search(name) and all_text) and not (all_text and wordy and len(grid) <= 40):
+        return None
+    lines = [" | ".join(str(v).strip() for v in row if v is not None and not (isinstance(v, float) and pd.isna(v)))
+             for row in grid.itertuples(index=False)]
+    return "\n".join(line for line in lines if line)[:6000]
+
+
 def frames_to_sheets(raw_frames: dict[str, pd.DataFrame]) -> dict[str, pd.DataFrame]:
-    """Raw grids (no header yet), e.g. from the Google Sheets API, to clean sheets."""
+    """Raw grids (no header yet), e.g. from the Google Sheets API, to clean sheets.
+    Notes sheets come back as a one-column frame with attrs["doc_text"]."""
     out = {}
     for name, raw in raw_frames.items():
-        df = _finalize(raw)
+        raw = raw.reset_index(drop=True)
+        raw.columns = range(raw.shape[1])
+        text = _doc_text(raw, str(name))
+        if text:
+            doc = pd.DataFrame({"note": text.split("\n")})
+            doc.attrs["doc_text"] = text
+            out[str(name)] = doc
+            continue
+        main, side = _split_blocks(raw)
+        df = _finalize(main)
         if not df.empty:
+            if side:
+                df.attrs["side_tables"] = side
             out[str(name)] = df
     return out
 
