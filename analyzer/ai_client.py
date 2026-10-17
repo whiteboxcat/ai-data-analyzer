@@ -51,19 +51,32 @@ def _model(pid: str) -> str:
     return (os.getenv(cfg["model_env"]) or "").strip() or cfg["default_model"]
 
 
+class NotJSON(AIError):
+    """The model replied with prose or cut-off JSON. `.raw` holds what it said."""
+
+    def __init__(self, raw: str):
+        super().__init__(f"AI did not return valid JSON: {raw[:200]}")
+        self.raw = raw
+
+
 def _extract_json(text: str) -> dict:
     """Parse JSON even if the model wrapped it in ```json fences or prose."""
+    raw = text
     text = text.strip()
     fence = re.search(r"```(?:json)?\s*(.*?)```", text, re.S)
     if fence:
         text = fence.group(1).strip()
     try:
-        return json.loads(text)
+        out = json.loads(text)
     except json.JSONDecodeError:
         start, end = text.find("{"), text.rfind("}")
-        if start != -1 and end > start:
-            return json.loads(text[start:end + 1])
-        raise AIError(f"AI did not return valid JSON: {text[:200]}")
+        try:
+            out = json.loads(text[start:end + 1]) if start != -1 and end > start else None
+        except json.JSONDecodeError:
+            out = None
+    if not isinstance(out, dict):
+        raise NotJSON(raw)
+    return out
 
 
 # --------------------------------------------------------------------------- #
@@ -224,7 +237,8 @@ def _attempt(provider: str, model: str, system: str, user: str, max_tokens: int,
     raise AssertionError("unreachable")
 
 
-def ask_json(system: str, user: str, provider: str, max_tokens: int = 8000) -> dict:
+def ask_json(system: str, user: str, provider: str, max_tokens: int = 8000,
+             allow_text: bool = False) -> dict:
     """Send a prompt and return the parsed JSON object the model replies with.
 
     1. Temporary errors (overloaded, rate limited, network) are retried with waits.
@@ -276,4 +290,9 @@ def ask_json(system: str, user: str, provider: str, max_tokens: int = 8000) -> d
     else:
         _sticky.pop(provider, None)
     last_model[provider] = used
-    return _extract_json(raw)
+    try:
+        return _extract_json(raw)
+    except NotJSON:
+        if allow_text:          # caller can use the prose itself (e.g. a chat answer)
+            return {"_text": raw}
+        raise
