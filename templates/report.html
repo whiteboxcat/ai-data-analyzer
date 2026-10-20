@@ -160,8 +160,37 @@
       <span><span class="status fixed">Fixed</span> corrected automatically</span>
       <span><span class="status review">Review</span> needs your decision</span>
       <span><span class="status info">Note</span> for your information</span>
+      {% if r.user_cleaning and r.user_cleaning.skip %}<span><span class="status info">Skipped</span> left as is, per your instructions</span>{% endif %}
     </div>
   </div>
+
+  {% set uc = r.user_cleaning %}
+  {% if uc %}
+  <div class="issue-group user-cleaning">
+    <h3>Your cleaning instructions <span>applied first</span></h3>
+    <blockquote class="instr-text">{{ uc.instructions }}</blockquote>
+    {% if uc.error %}
+    <p class="callout warn">{{ uc.error }}</p>
+    {% else %}
+    {% if uc.summary %}<p class="quiet">{{ uc.summary }}</p>{% endif %}
+    {% if uc.steps %}
+    <ul class="issues">
+      {% for st in uc.steps %}
+      <li class="issue {{ 'low' if st.status == 'done' else 'high' if st.status == 'failed' else 'medium' }}"><div class="issue-body">
+        <div class="issue-top">
+          <b>{{ st.description }}</b>
+          <span>{% if st.status == 'done' %}<span class="status fixed">Done</span>
+          {% elif st.status == 'failed' %}<span class="status review">Couldn't do</span>
+          {% else %}<span class="status info">Not possible</span>{% endif %}</span>
+        </div>
+        {% if st.detail %}<p>{{ st.detail }}</p>{% endif %}
+      </div></li>
+      {% endfor %}
+    </ul>
+    {% else %}<p class="all-clear">The AI found nothing in the instructions to apply.</p>{% endif %}
+    {% endif %}
+  </div>
+  {% endif %}
 
   <div>
   {% for s in r.sheets %}
@@ -175,6 +204,7 @@
           <b>{{ i.title }}</b>
           <span><span class="sev-text">{{ i.severity|capitalize }} impact</span>
           {% if i.info %}<span class="status info">Note</span>
+          {% elif i.user_skipped %}<span class="status info">Skipped</span>
           {% elif i.auto_fix and r.auto_clean %}<span class="status fixed">Fixed</span>
           {% elif i.auto_fix %}<span class="status info">Fixable</span>
           {% else %}<span class="status review">Review</span>{% endif %}</span>

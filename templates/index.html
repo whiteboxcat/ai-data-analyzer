@@ -105,6 +105,22 @@
 
     <hr class="divider">
 
+    <fieldset>
+      <legend>Cleaning instructions <span class="small quiet" style="font-weight:400">Optional. Leave blank if you have none.</span></legend>
+      <label class="field">Anything you already know about how this data should be cleaned?
+        <span class="hint">Applied first. The automatic cleaning handles everything else. Needs an AI model.</span>
+        <textarea name="cleaning_instructions" rows="4" maxlength="{{ max_instructions }}" id="instr"
+          placeholder="For example:
+- Remove rows where extract_version is RERUN
+- In inventory, keep only the latest snapshot per distributor and SKU
+- Exclude cancelled orders in ecom_orders
+- Don't fill blank categories with &quot;Unknown&quot;"></textarea>
+        <span class="hint" id="instr-count" aria-live="polite"></span>
+      </label>
+    </fieldset>
+
+    <hr class="divider">
+
     <div style="display:grid;gap:12px">
       <label class="check"><input type="checkbox" name="auto_clean" checked>
         <span>Fix safe data issues automatically<small>Duplicates, spacing, spelling variants, numbers and dates stored as text.</small></span></label>
@@ -192,6 +208,22 @@
     document.getElementById("go").disabled = false;
     document.getElementById("loading").classList.remove("on");
   });
+
+// cleaning instructions: show the character count near the limit; warn when no AI model is chosen
+(() => {
+  const box = document.getElementById("instr"), count = document.getElementById("instr-count");
+  const prov = document.querySelector("select[name=provider]");
+  if (!box) return;
+  const update = () => {
+    const n = box.value.length, max = +box.maxLength;
+    const parts = [];
+    if (n > max * 0.8) parts.push(`${n} / ${max} characters`);
+    if (box.value.trim() && prov && !prov.value) parts.push("Choose an AI model above, or these instructions can't be read.");
+    count.textContent = parts.join(" · ");
+  };
+  box.addEventListener("input", update);
+  prov && prov.addEventListener("change", update);
+})();
 </script>
 {% endblock %}
 

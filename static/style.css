@@ -110,7 +110,10 @@ input[type=text], input[type=password], select {
 select { appearance: none; padding-right: 32px;
   background-image: linear-gradient(45deg, transparent 50%, var(--graphite) 50%), linear-gradient(135deg, var(--graphite) 50%, transparent 50%);
   background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px; background-size: 5px 5px; background-repeat: no-repeat; }
-input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.field textarea { font: 400 14px/1.5 var(--font); color: var(--ink); background: var(--sheet); width: 100%; min-width: 0;
+  padding: 10px 12px; border: 1px solid var(--rule-strong); border-radius: var(--r); resize: vertical; min-height: 96px; }
+.field textarea::placeholder { color: var(--faint); }
+input:focus, select:focus, .field textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .check { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--ink); cursor: pointer; }
 .check input { margin: 3px 0 0; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
 .check span small { display: block; color: var(--graphite); font-size: 13px; }
@@ -443,3 +446,8 @@ details ul { margin: 8px 0 0; padding-left: 20px; color: var(--graphite); }
 .chat-input textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 .chat-input .btn { height: 44px; }
 .chat-foot { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+
+/* the user's own cleaning instructions, top of the Data cleaning tab */
+.user-cleaning .instr-text { margin: 4px 0 12px; padding: 10px 14px; border-left: 3px solid var(--accent);
+  background: var(--sheet-2); white-space: pre-wrap; font-size: 14px; color: var(--graphite); }
+.user-cleaning .callout.warn { padding: 10px 14px; border-radius: var(--r); background: var(--warn-soft); color: var(--warn); }

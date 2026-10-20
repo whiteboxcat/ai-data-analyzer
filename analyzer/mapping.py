@@ -100,13 +100,16 @@ def _issue(sheet, column, kind, severity, title, detail, recommendation, affecte
             "affected_rows": int(affected), "auto_fix": auto_fix, **extra}
 
 
-def standardise(sheets: dict[str, pd.DataFrame], apply: bool = True) -> tuple[dict, dict, dict]:
+def standardise(sheets: dict[str, pd.DataFrame], apply: bool = True,
+                skip=None) -> tuple[dict, dict, dict]:
     """Find lookups and use them on the other sheets.
 
     Returns (issues by sheet, cleaning-log lines by sheet, reference sheets
     {lookup sheet: [sheets it standardised]}). With apply=True the standard
     column is inserted next to the messy one (sheets are changed in place).
+    `skip(sheet, column) -> bool`: reported but not changed (the user turned it off).
     """
+    skip = skip or (lambda sheet, column: False)
     issues: dict[str, list] = {}
     logs: dict[str, list] = {}
     refs: dict[str, list] = {}
@@ -145,11 +148,12 @@ def standardise(sheets: dict[str, pd.DataFrame], apply: bool = True) -> tuple[di
                     name, col, "mapped_names", "high" if merged else "low", title, detail.strip(),
                     f"Use '{lk.canon_col}' for totals and comparisons. The original '{col}' column is kept."
                     + (f" Add the missing values to {lk.sheet} if they should be included." if len(unmatched) else ""),
-                    n_merged_rows or int(present.sum()), True, unmatched=int(len(unmatched))))
+                    n_merged_rows or int(present.sum()), not skip(name, col),
+                    unmatched=int(len(unmatched))))
                 refs.setdefault(lk.sheet, [])
                 if name not in refs[lk.sheet]:
                     refs[lk.sheet].append(name)
-                if apply:
+                if apply and not skip(name, col):
                     pos = list(df.columns).index(col) + 1
                     # values not in the lookup keep their own (trimmed) text, e.g. 'ALL'
                     fallback = df[col].astype(str).str.strip().where(present, None)

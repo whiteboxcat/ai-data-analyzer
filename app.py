@@ -29,6 +29,7 @@ load_dotenv()
 from analyzer import chat, pipeline, sources  # noqa: E402  (load .env before importing)
 from analyzer.ai_client import last_model as ai_last_model  # noqa: E402
 from analyzer.ai_client import PROVIDERS, available_providers  # noqa: E402
+MAX_INSTRUCTIONS = 2000  # characters allowed in the optional cleaning-instructions box
 
 BASE = Path(__file__).parent
 UPLOADS = BASE / "uploads"
@@ -190,7 +191,7 @@ def index():
     return render_template("index.html", providers=available_providers(), max_mb=MAX_MB,
                            robot_email=sources.service_account_email(),
                            link_mb=int(os.getenv("MAX_LINK_MB", "200")),
-                           data_budget=pipeline.data_budget_mb())
+                           data_budget=pipeline.data_budget_mb(), max_instructions=MAX_INSTRUCTIONS)
 
 
 @app.post("/analyze")
@@ -215,6 +216,7 @@ def analyze():
         provider = None
     context = {k: request.form.get(k, "").strip() for k in
                ("market", "industry", "brand", "competitors", "goal", "language")}
+    context["cleaning_instructions"] = request.form.get("cleaning_instructions", "").strip()[:MAX_INSTRUCTIONS]
     run_args = dict(provider=provider, context=context,
                     auto_clean=bool(request.form.get("auto_clean")),
                     with_trends=bool(request.form.get("trends")),

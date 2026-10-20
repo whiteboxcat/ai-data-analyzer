@@ -16,7 +16,7 @@ from pathlib import Path
 import pandas as pd
 
 from . import charts as ch
-from . import ai_client, chat, cleaner, industry, insights, mapping, planner
+from . import ai_client, chat, cleaner, industry, insights, instructions, mapping, planner
 from .loader import frames_to_sheets, load_file, memory_mb
 from .profiler import profile_sheet
 from .utils import to_jsonable
@@ -67,8 +67,16 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
     if notes:
         context = {**context, "workbook_notes": "\n\n".join(f"[{n}]\n{t}" for n, t in notes.items())[:8000]}
 
-    # 0b. lookup sheets (sku_raw -> sku_canonical) standardise names in the other sheets
-    map_issues, map_logs, refs = mapping.standardise(sheets, apply=auto_clean)
+    # 0b. the user's own cleaning instructions come first; the automatic cleaning does the rest
+    user_cleaning = instructions.run(sheets, context.get("cleaning_instructions", ""), provider)
+    if user_cleaning and not user_cleaning.get("error"):
+        done = [s["detail"] for s in user_cleaning["steps"] if s["status"] == "done"]
+        if done:
+            context = {**context, "cleaning_already_applied": done}
+
+    # 0c. lookup sheets (sku_raw -> sku_canonical) standardise names in the other sheets
+    map_issues, map_logs, refs = mapping.standardise(
+        sheets, apply=auto_clean, skip=lambda s, c: instructions.is_skipped(user_cleaning, s, "mapped_names", c))
     sheet_names = list(sheets)
 
     # 1. profile + quality checks on the RAW data, then clean.
@@ -79,6 +87,18 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
         try:
             raw_profile = profile_sheet(df, sname)
             iss = map_issues.get(sname, []) + cleaner.detect_issues(df, raw_profile)
+            for i in iss:
+                if (i["auto_fix"] or i["kind"] == "mapped_names") and \
+                        instructions.is_skipped(user_cleaning, sname, i["kind"], i["column"]):
+                    i["auto_fix"], i["user_skipped"] = False, True
+                    if i["kind"] == "mapped_names":    # nothing was added, so describe what was left alone
+                        i["detail"] = i["detail"].split("; the standard name goes in")[0] + ". " + \
+                            (i["detail"].split(". ", 1)[1] if ". " in i["detail"] else "")
+                        i["detail"] = i["detail"].replace("Merged spellings:", "It would merge:")
+                        i["recommendation"] = (f"Left as written, as your cleaning instructions asked. Remove that line from "
+                                               f"your instructions if you want '{i['column']}' standardised.")
+                    else:
+                        i["recommendation"] = "Not fixed, as your cleaning instructions asked. " + i["recommendation"]
             if auto_clean:
                 clean_df, log_lines = cleaner.apply_fixes(df, raw_profile, iss)
                 log_lines = map_logs.get(sname, []) + log_lines
@@ -164,7 +184,7 @@ def run(path: str | Path | None = None, provider: str | None = None, context: di
         "plan_source": plan["source"], "plan_error": plan.get("error"), "rejected_charts": plan["rejected"],
         "sheets": sheet_results, "empty_sheets": empty, "failed_sheets": failed, "issues": all_issues,
         "notes_sheets": list(notes), "workbook_notes": context.get("workbook_notes"),
-        "reference_sheets": refs,
+        "reference_sheets": refs, "user_cleaning": user_cleaning,
         "insights": ins, "trends": trends, "timings": timings,
     })
 
