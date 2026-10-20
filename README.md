@@ -46,6 +46,7 @@ python tests/test_pipeline.py   # offline test, no keys needed
 python tests/test_sources.py    # Google links (simulated) + a 600k-row file
 python tests/test_chat.py       # queries and the Ask AI loop (fake AI)
 python tests/test_workbook.py   # lookup sheets, reruns, side pivots, notes sheets
+python tests/test_instructions.py  # your own cleaning instructions (fake AI)
 python app.py               # http://127.0.0.1:5000  (add FLASK_DEBUG=1 to .env for auto-reload)
 ```
 
@@ -58,6 +59,19 @@ Try `tests/sample_messy.xlsx` first. It has title rows, mixed date formats, "Rp 
 - **Rows loaded twice:** rows identical except a version/extract/batch/timestamp column (e.g. BASE vs RERUN) are reported with the double-counted amount, and one copy is kept.
 - **Pivots beside the data:** a table placed after an empty column (Excel pivots, summaries) is set aside instead of becoming fake columns.
 - **README / data dictionary sheets** aren't charted; their text is given to the AI as context.
+
+## Your own cleaning instructions (optional)
+
+The upload page has a **Cleaning instructions** box. If you already know how the data should be cleaned, write it in plain words, for example:
+
+```
+Remove rows where extract_version is RERUN
+In inventory, keep only the latest snapshot per distributor and SKU
+Exclude cancelled orders in ecom_orders
+Don't fill blank categories with "Unknown"
+```
+
+These run **first**; the automatic cleaning then handles everything else. The AI only translates your words into a fixed list of steps (remove or keep rows matching a condition, rename values, fill blanks, keep the latest/first of duplicates, drop columns, change a column's type, switch off an automatic fix). Python checks every sheet and column name and applies them (`analyzer/instructions.py`). A step that would delete every row of a sheet is refused. The **Data cleaning** tab shows each instruction as *Done*, *Couldn't do* (with the reason) or *Not possible*. Blank box = no change. Needs an AI model.
 
 ## Ask AI and downloads
 
@@ -132,6 +146,7 @@ The app tries private access first, then the public link, and tells you which sh
 | `analyzer/insights.py` | AI insights and recommendations (fallback: computed notes) |
 | `analyzer/industry.py` | News fetching + AI trend/competitor summary |
 | `analyzer/pipeline.py` | Runs everything in order |
+| `analyzer/instructions.py` | Your cleaning instructions → checked steps, applied before the automatic cleaning |
 | `analyzer/mapping.py` | Uses lookup sheets (`x_raw` → `x_canonical`) to standardise names across sheets |
 | `analyzer/query.py` | Safe JSON query language the chat AI uses to get exact numbers |
 | `analyzer/chat.py` | Ask AI: question → queries → answer loop |
